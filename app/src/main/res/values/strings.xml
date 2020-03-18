@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Zomato Sample</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZWluaGVzYXJpIiwiYSI6ImNrN3g2dGY5djA4Y2MzaHA5eDA3dTVpYjkifQ.4WbCd9M1BCnIMzYuagbuLA</string>
+    <string name="zomato_api_key">fb8e9264e847fc28a44187844fc9e667</string>
 </resources>
