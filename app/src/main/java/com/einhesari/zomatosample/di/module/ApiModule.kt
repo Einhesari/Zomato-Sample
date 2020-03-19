@@ -1,6 +1,5 @@
 package com.einhesari.zomatosample.di.module
 
-import android.content.Context
 import com.einhesari.zomatosample.network.ApiService
 import com.einhesari.zomatosample.utils.Const
 import com.einhesari.zomatosample.utils.Const.REQUEST_TIMEOUT
@@ -8,11 +7,8 @@ import com.einhesari.zomatosample.utils.Const.ZOMATO_BASE_URL
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import dagger.Module
 import dagger.Provides
-import okhttp3.Cache
 import okhttp3.Interceptor
-import okhttp3.Interceptor.Companion.invoke
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -58,7 +54,7 @@ class ApiModule {
 
     @Provides
     fun provideInterceptor(): Interceptor {
-        return Interceptor { chain ->
+        return  Interceptor {  chain: Interceptor.Chain ->
             var request = chain.request()
             request = request.newBuilder()
                 .addHeader(Const.HEADER_KEY, "application/json")
