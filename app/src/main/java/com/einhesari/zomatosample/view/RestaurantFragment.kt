@@ -1,17 +1,18 @@
 package com.einhesari.zomatosample.view
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
-import com.mapbox.android.core.location.LocationEngine
-import com.mapbox.android.core.permissions.PermissionsListener
-import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
@@ -25,15 +26,19 @@ import com.mapbox.mapboxsdk.maps.Style
 import dagger.android.support.DaggerFragment
 
 
-class RestaurantFragment : DaggerFragment(), PermissionsListener, OnMapReadyCallback {
+class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private lateinit var fragmentRestaurantBinding: FragmentRestaurantBinding
     private lateinit var fragmentView: View
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
-    private lateinit var permissionsManager: PermissionsManager
     private lateinit var currentLocation: Location
     private val mapZoom = 11.0
+
+    var permissions = arrayOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +60,7 @@ class RestaurantFragment : DaggerFragment(), PermissionsListener, OnMapReadyCall
 
 
     private fun showUserLocationOnMap() {
-        if (PermissionsManager.areLocationPermissionsGranted(context)) {
+        if (hasPermissions(permissions)) {
             val customLocationComponentOptions =
                 createLocationComponentOptions()
             val customLocationComponentActivationOptions =
@@ -74,9 +79,14 @@ class RestaurantFragment : DaggerFragment(), PermissionsListener, OnMapReadyCall
             getLastKnownLocation()
             moveCameraLocation(currentLocation)
         } else {
-            permissionsManager = PermissionsManager(this)
-            permissionsManager.requestLocationPermissions(activity)
+            requestPermissions(
+                permissions, 1
+            )
         }
+    }
+
+    fun hasPermissions(permissions: Array<String>): Boolean = permissions.all {
+        ActivityCompat.checkSelfPermission(context!!, it) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun getLastKnownLocation() {
@@ -105,23 +115,21 @@ class RestaurantFragment : DaggerFragment(), PermissionsListener, OnMapReadyCall
             .locationComponentOptions(locationComponentOptions)
             .build()
 
-    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onPermissionResult(granted: Boolean) {
-        if (granted) {
-            showUserLocationOnMap()
-        }
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.all {
+                grantResults[0] == PackageManager.PERMISSION_GRANTED
+            }) {
+            showUserLocationOnMap()
+        }
+
     }
+
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         map = mapboxMap
