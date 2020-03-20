@@ -17,6 +17,10 @@ import java.util.concurrent.TimeUnit
 @Module
 class ApiModule {
 
+    private val REQUEST_TIMEOUT = 60L
+    private val ZOMATO_BASE_URL = "https://developers.zomato.com/api/v2.1/"
+    private val HEADER_KEY = "user-key"
+
     @Provides
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
