@@ -1,9 +1,6 @@
 package com.einhesari.zomatosample.di.module
 
 import com.einhesari.zomatosample.network.ApiService
-import com.einhesari.zomatosample.utils.Const
-import com.einhesari.zomatosample.utils.Const.REQUEST_TIMEOUT
-import com.einhesari.zomatosample.utils.Const.ZOMATO_BASE_URL
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -61,7 +58,7 @@ class ApiModule {
         return  Interceptor {  chain: Interceptor.Chain ->
             var request = chain.request()
             request = request.newBuilder()
-                .addHeader(Const.HEADER_KEY, "application/json")
+                .addHeader(HEADER_KEY, "application/json")
                 .build()
             chain.proceed(request)
         }
