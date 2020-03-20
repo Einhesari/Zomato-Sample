@@ -21,10 +21,7 @@ import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
-import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.maps.*
 import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -35,7 +32,6 @@ import javax.inject.Inject
 class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private lateinit var fragmentRestaurantBinding: FragmentRestaurantBinding
-    private lateinit var fragmentView: View
     private lateinit var compositeDisposable: CompositeDisposable
 
     private lateinit var mapView: MapView
@@ -62,8 +58,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     ): View? {
         fragmentRestaurantBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_restaurant, container, false)
-        fragmentView = fragmentRestaurantBinding.root
-        return fragmentView
+        return fragmentRestaurantBinding.root
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -129,6 +125,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 ), mapZoom
             )
         )
+
     }
 
     private fun createLocationComponentOptions() =
