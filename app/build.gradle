@@ -61,6 +61,7 @@ def leakcanary_version = "2.1"
 def glide_version = "4.11.0"
 def dagger_version = "2.22"
 def mapbox_version = "9.0.0"
+def play_services_version = "17.0.0"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -99,6 +100,8 @@ dependencies {
     kapt "com.google.dagger:dagger-android-processor:$dagger_version"
 
     implementation "com.mapbox.mapboxsdk:mapbox-android-sdk:$mapbox_version"
+    
+    implementation "com.google.android.gms:play-services-location:$play_services_version"
 
     testImplementation "junit:junit:$junit_version"
     androidTestImplementation "androidx.test.ext:junit:$extjunit_version"

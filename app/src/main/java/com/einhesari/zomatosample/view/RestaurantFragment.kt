@@ -1,10 +1,11 @@
 package com.einhesari.zomatosample.view
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,8 +14,11 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
+import com.mapbox.mapboxsdk.location.LocationComponent
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
@@ -33,7 +37,13 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
     private lateinit var currentLocation: Location
-    private val mapZoom = 11.0
+    private val mapZoom = 13.0
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val locationRequestInterval = 10000L
+    private val fastestRequestInterval = 5000L
+    private val requestPriority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    private var locationRequest: LocationRequest? = null
 
     var permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -56,42 +66,33 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView = fragmentRestaurantBinding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+        setupLocationChangeCallBack()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
     }
 
 
     private fun showUserLocationOnMap() {
-        if (hasPermissions(permissions)) {
-            val customLocationComponentOptions =
-                createLocationComponentOptions()
-            val customLocationComponentActivationOptions =
-                createLocationComponentActivationOptions(customLocationComponentOptions)
+        val customLocationComponentOptions =
+            createLocationComponentOptions()
+        val customLocationComponentActivationOptions =
+            createLocationComponentActivationOptions(customLocationComponentOptions)
+        map.locationComponent.apply {
 
-            map.locationComponent.apply {
+            activateLocationComponent(customLocationComponentActivationOptions)
 
-                activateLocationComponent(customLocationComponentActivationOptions)
+            isLocationComponentEnabled = true
 
-                isLocationComponentEnabled = true
+            cameraMode = CameraMode.TRACKING
 
-                cameraMode = CameraMode.TRACKING
-
-                renderMode = RenderMode.COMPASS
-            }
-            getLastKnownLocation()
-            moveCameraLocation(currentLocation)
-        } else {
-            requestPermissions(
-                permissions, 1
-            )
+            renderMode = RenderMode.COMPASS
         }
+
     }
 
     fun hasPermissions(permissions: Array<String>): Boolean = permissions.all {
         ActivityCompat.checkSelfPermission(context!!, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun getLastKnownLocation() {
-        currentLocation = map.locationComponent.lastKnownLocation!!
-    }
 
     private fun moveCameraLocation(location: Location) {
         map.animateCamera(
@@ -134,9 +135,60 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onMapReady(mapboxMap: MapboxMap) {
         map = mapboxMap
         map.setStyle(Style.MAPBOX_STREETS) {
-            showUserLocationOnMap()
+            if (hasPermissions(permissions)) {
+                showUserLocationOnMap()
+                createLocationRequest()
+                checkLocationService()
+            } else {
+                requestPermissions(
+                    permissions, 1
+                )
+            }
         }
+
+
 
     }
 
+    private fun createLocationRequest() {
+        locationRequest = LocationRequest.create()?.apply {
+            interval = locationRequestInterval
+            fastestInterval = fastestRequestInterval
+            priority = requestPriority
+        }
+    }
+
+    private fun checkLocationService() {
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest!!)
+        val client: SettingsClient = LocationServices.getSettingsClient(activity!!)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+        task.addOnSuccessListener { locationSettingsResponse ->
+            startLocationUpdates()
+        }
+        task.addOnFailureListener {
+
+        }
+    }
+
+    private fun startLocationUpdates() {
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    private fun setupLocationChangeCallBack() {
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    Log.i("", "")
+                    moveCameraLocation(location)
+//                    showUserLocationOnMap()
+                }
+            }
+        }
+    }
 }
