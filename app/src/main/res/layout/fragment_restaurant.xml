@@ -8,7 +8,7 @@
             type="com.einhesari.zomatosample.view.RestaurantFragment" />
     </data>
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
@@ -18,8 +18,7 @@
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:mapbox_renderTextureMode="true" />
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            android:layout_height="match_parent" />
+    </RelativeLayout>
 
 </layout>
