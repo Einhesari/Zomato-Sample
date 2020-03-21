@@ -14,7 +14,7 @@ data class Restaurant(
     val url: String,
 
     @SerializedName("location")
-    val location: Location,
+    val restaurantLocation: RestaurantLocation,
 
     @SerializedName("average_cost_for_two")
     val averageCostForTwo: String,
@@ -64,4 +64,4 @@ data class Restaurant(
     @SerializedName("phone_numbers")
     val phoneNumbers: String
 
-    )
+)

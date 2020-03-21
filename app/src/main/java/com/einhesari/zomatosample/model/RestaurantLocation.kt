@@ -2,7 +2,7 @@ package com.einhesari.zomatosample.model
 
 import com.google.gson.annotations.SerializedName
 
-data class Location(
+data class RestaurantLocation(
 
     @SerializedName("address")
     val address: String,
