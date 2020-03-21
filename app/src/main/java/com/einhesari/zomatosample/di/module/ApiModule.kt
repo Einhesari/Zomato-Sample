@@ -1,5 +1,8 @@
 package com.einhesari.zomatosample.di.module
 
+import android.content.Context
+import android.content.res.Resources
+import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.network.ApiService
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import dagger.Module
@@ -54,11 +57,11 @@ class ApiModule {
     }
 
     @Provides
-    fun provideInterceptor(): Interceptor {
-        return  Interceptor {  chain: Interceptor.Chain ->
+    fun provideInterceptor(context: Context): Interceptor {
+        return Interceptor { chain: Interceptor.Chain ->
             var request = chain.request()
             request = request.newBuilder()
-                .addHeader(HEADER_KEY, "application/json")
+                .addHeader(HEADER_KEY, context.getString(R.string.zomato_api_key))
                 .build()
             chain.proceed(request)
         }
