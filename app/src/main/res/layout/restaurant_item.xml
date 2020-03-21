@@ -55,8 +55,8 @@
         android:layout_marginTop="@dimen/margin_small"
         android:layout_toRightOf="@+id/restaurant_photo_img"
         android:isIndicator="true"
-        android:progressDrawable="@drawable/restaurants_user_rating_custom_ratingbar"
-        tools:rating="5" />
+        android:progressDrawable="@drawable/restaurant_user_rating_custom_ratingbar"
+        tools:rating="3" />
 
     <androidx.appcompat.widget.AppCompatRatingBar
         android:id="@+id/price_rtbar"
@@ -67,6 +67,6 @@
         android:layout_marginTop="@dimen/margin_small"
         android:layout_toRightOf="@+id/restaurant_photo_img"
         android:isIndicator="true"
-        android:progressDrawable="@drawable/restaurants_price_custom_ratingbar"
-        tools:rating="5" />
+        android:progressDrawable="@drawable/restaurant_price_custom_ratingbar"
+        tools:rating="3" />
 </RelativeLayout>
