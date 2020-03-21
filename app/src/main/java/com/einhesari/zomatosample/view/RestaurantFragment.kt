@@ -2,6 +2,7 @@ package com.einhesari.zomatosample.view
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -89,7 +90,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         viewmodel.getRestaurants()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
+            .subscribe {
                 it.forEach {
                     val latLng =
                         LatLng(
@@ -99,9 +100,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     addMarkerOnMap(latLng)
 
                 }
-            }, {
-
-            })
+            }
             .let {
                 compositeDisposable.add(it)
             }
@@ -196,7 +195,10 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
             it.addImage(
                 RESTAURANT_MARKER_ID,
-                BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(R.drawable.restaurant_marker))!!,
+                BitmapFactory.decodeResource(
+                    context?.getResources(),
+                    R.drawable.restaurant_marker
+                ),
                 true
             )
 
@@ -225,7 +227,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             SymbolOptions()
                 .withLatLng(latLng)
                 .withIconImage(RESTAURANT_MARKER_ID)
-                .withIconSize(2.0f)
+                .withIconSize(1.0f)
         )
     }
 
