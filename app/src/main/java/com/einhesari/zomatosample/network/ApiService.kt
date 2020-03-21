@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface ApiService {
 
-    @GET("/search")
+    @GET("api/v2.1/search")
     fun findRestaurant(
         @Query("lat") lat: String,
         @Query("lon") long: String,

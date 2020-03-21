@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 class ApiModule {
 
     private val REQUEST_TIMEOUT = 60L
-    private val ZOMATO_BASE_URL = "https://developers.zomato.com/api/v2.1/"
+    private val ZOMATO_BASE_URL = "https://developers.zomato.com/"
     private val HEADER_API_KEY = "user-key"
     private val HEADER_CONTENT_TYPE = "Content-Type"
     private val CONTENT_TYPE = "application/json"
