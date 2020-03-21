@@ -23,6 +23,10 @@ import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.*
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
+import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -38,6 +42,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
+    private lateinit var symbolManager: SymbolManager
+
+    private val RESTAURANT_MARKER_ID = "restaurant"
 
     private var lastLocation: Location? = null
 
@@ -83,12 +90,20 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                Log.i("", "")
+                it.forEach {
+                    val latLng =
+                        LatLng(
+                            it.restaurantLocation.latitude.toDouble(),
+                            it.restaurantLocation.longitude.toDouble()
+                        )
+                    addMarkerOnMap(latLng)
+
+                }
             }, {
 
             })
             .let {
-
+                compositeDisposable.add(it)
             }
     }
 
@@ -178,6 +193,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onMapReady(mapboxMap: MapboxMap) {
         map = mapboxMap
         map.setStyle(Style.MAPBOX_STREETS) {
+
+            it.addImage(
+                RESTAURANT_MARKER_ID,
+                BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(R.drawable.restaurant_marker))!!,
+                true
+            )
+
+            initSymbolManager(it)
+
             if (hasPermissions(permissions)) {
                 showUserLocationOnMap()
             } else {
@@ -187,6 +211,22 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
         }
 
+    }
+
+    private fun initSymbolManager(style: Style) {
+        symbolManager = SymbolManager(mapView, map, style)
+        symbolManager.iconAllowOverlap = true
+        symbolManager.iconTranslate = arrayOf(-4f, 5f)
+        symbolManager.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
+    }
+
+    private fun addMarkerOnMap(latLng: LatLng) {
+        symbolManager.create(
+            SymbolOptions()
+                .withLatLng(latLng)
+                .withIconImage(RESTAURANT_MARKER_ID)
+                .withIconSize(2.0f)
+        )
     }
 
     private fun showUserLocationOnMap() {
