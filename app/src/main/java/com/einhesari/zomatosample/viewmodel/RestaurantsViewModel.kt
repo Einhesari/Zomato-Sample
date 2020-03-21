@@ -30,8 +30,9 @@ class RestaurantsViewModel @Inject constructor(
         return false
     }
 
-    fun findNearRestaurant(location: Location): Observable<ArrayList<Restaurant>> {
+    fun findNearRestaurant(location: Location) {
         searchRestaurantRepository.findRestaurant(location)
-        return searchRestaurantRepository.getRestaurants()
     }
+
+    fun getRestaurants() = searchRestaurantRepository.getRestaurants()
 }
