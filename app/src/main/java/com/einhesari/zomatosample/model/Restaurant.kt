@@ -23,10 +23,10 @@ data class Restaurant(
     val priceRange: String,
 
     @SerializedName("currency")
-    val Currency: String,
+    val currency: String,
 
     @SerializedName("thumb")
-    val Thumb: String,
+    val thumb: String,
 
     @SerializedName("featured_image")
     val featuredImage: String,
@@ -41,7 +41,7 @@ data class Restaurant(
     val eventsUrl: String,
 
     @SerializedName("user_rating")
-    val userRating: String,
+    val userRating: UserRating,
 
     @SerializedName("has_online_delivery")
     val hasOnlineDelivery: String,

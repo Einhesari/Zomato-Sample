@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
+import kotlin.math.log
 
 
 class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
@@ -72,10 +74,27 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView = fragmentRestaurantBinding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+
+        getNearRestuarants()
+    }
+
+    private fun getNearRestuarants() {
+        viewmodel.getRestaurants()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                Log.i("", "")
+            }, {
+
+            })
+            .let {
+
+            }
     }
 
     private fun observeUserLiveLocation() {
-        viewmodel.getUserLiveLocation().subscribeOn(Schedulers.io())
+        viewmodel.getUserLiveLocation()
+            .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 lastLocation?.also { lastLocation ->
@@ -86,6 +105,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 } ?: run {
                     lastLocation = it
                     moveCameraLocation(it)
+                    viewmodel.findNearRestaurant(it)
                 }
 
             }

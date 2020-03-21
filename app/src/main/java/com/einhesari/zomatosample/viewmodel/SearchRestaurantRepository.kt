@@ -12,7 +12,7 @@ class SearchRestaurantRepository @Inject constructor(private val apiService: Api
 
     private val searchRadius = "1000" // in meters
     private val restaurants: BehaviorRelay<ArrayList<Restaurant>> = BehaviorRelay.create()
-
+    private var foundedRestaurants = ArrayList<Restaurant>()
 
     fun findRestaurant(location: Location) {
         apiService.findRestaurant(
@@ -23,9 +23,12 @@ class SearchRestaurantRepository @Inject constructor(private val apiService: Api
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
-                restaurants.accept(it.Restaurants)
-            }, { error ->
-                error.printStackTrace()
+                it.restaurants.all {
+                    foundedRestaurants.add(it.restaurant)
+                }
+                restaurants.accept(foundedRestaurants)
+            }, {
+                it.printStackTrace()
             })
             .let { }
     }

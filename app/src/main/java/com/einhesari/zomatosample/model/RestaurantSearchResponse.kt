@@ -14,7 +14,7 @@ data class RestaurantSearchResponse(
     val resultsShown: String,
 
     @SerializedName("restaurants")
-    val Restaurants: ArrayList<Restaurant>
+    val restaurants: ArrayList<RestaurantWrapper>
 
 
 )

@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class UserRating(
 
     @SerializedName("aggregate_rating")
-    val aggregateRating: String,
+    val aggregateRating: Float,
 
     @SerializedName("rating_text")
     val ratingText: String,
@@ -14,7 +14,6 @@ data class UserRating(
     val ratingColor: String,
 
     @SerializedName("votes")
-    val votes: String
-
+    val votes: Int
 
 )
