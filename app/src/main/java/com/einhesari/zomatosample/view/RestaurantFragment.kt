@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -36,6 +37,8 @@ import javax.inject.Inject
 
 
 class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
+
+
 
     private lateinit var binding: FragmentRestaurantBinding
     private lateinit var compositeDisposable: CompositeDisposable
