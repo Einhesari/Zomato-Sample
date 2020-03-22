@@ -8,12 +8,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.adapter.RestaurantAdapter
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
@@ -39,7 +39,6 @@ import javax.inject.Inject
 class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
 
-
     private lateinit var binding: FragmentRestaurantBinding
     private lateinit var compositeDisposable: CompositeDisposable
 
@@ -60,6 +59,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     lateinit var factory: ViewModelProviderFactory
 
     private lateinit var viewmodel: RestaurantsViewModel
+
+    private val snapHelper = LinearSnapHelper()
 
     var permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -116,6 +117,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         binding.restaurantRecyclerView.layoutManager =
             LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
         binding.restaurantRecyclerView.adapter = adapter
+        snapHelper.attachToRecyclerView(binding.restaurantRecyclerView)
 
     }
 
