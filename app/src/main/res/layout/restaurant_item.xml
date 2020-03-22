@@ -1,72 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+<layout>
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/restaurant_photo_img"
-        android:layout_width="@dimen/restaurant_item_image"
-        android:layout_height="@dimen/restaurant_item_image" />
+    <data>
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/restaurant_name_tv"
-        style="@style/TextAppearance.MaterialComponents.Headline6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/margin_standard"
-        android:layout_toRightOf="@+id/restaurant_photo_img"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        tools:text="Restaurant Name" />
+        <variable
+            name="restaurant"
+            type="com.einhesari.zomatosample.model.Restaurant" />
+    </data>
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/cuisines_tv"
-        style="@style/TextAppearance.MaterialComponents.Subtitle1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/restaurant_name_tv"
-        android:layout_marginLeft="@dimen/margin_standard"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_toRightOf="@+id/restaurant_photo_img"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        tools:text="Cuisines" />
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/rating_text_tv"
-        style="@style/TextAppearance.AppCompat.Caption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/cuisines_tv"
-        android:layout_marginLeft="@dimen/margin_standard"
-        android:layout_marginTop="@dimen/margin_standard"
-        android:layout_toRightOf="@+id/user_rating_rtbar"
-        android:ellipsize="marquee"
-        android:singleLine="true"
-        tools:text="Good" />
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/restaurant_photo_img"
+            android:layout_width="@dimen/restaurant_item_image"
+            android:layout_height="@dimen/restaurant_item_image" />
 
-    <androidx.appcompat.widget.AppCompatRatingBar
-        android:id="@+id/user_rating_rtbar"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/ratingbar_height"
-        android:layout_below="@+id/cuisines_tv"
-        android:layout_marginLeft="@dimen/margin_standard"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_toRightOf="@+id/restaurant_photo_img"
-        android:isIndicator="true"
-        android:progressDrawable="@drawable/restaurant_user_rating_custom_ratingbar"
-        tools:rating="3" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/restaurant_name_tv"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_toRightOf="@+id/restaurant_photo_img"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            tools:text="Restaurant Name" />
 
-    <androidx.appcompat.widget.AppCompatRatingBar
-        android:id="@+id/price_rtbar"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/ratingbar_height"
-        android:layout_below="@+id/user_rating_rtbar"
-        android:layout_marginLeft="@dimen/margin_standard"
-        android:layout_marginTop="@dimen/margin_small"
-        android:layout_toRightOf="@+id/restaurant_photo_img"
-        android:isIndicator="true"
-        android:progressDrawable="@drawable/restaurant_price_custom_ratingbar"
-        tools:rating="3" />
-</RelativeLayout>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/cuisines_tv"
+            style="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/restaurant_name_tv"
+            android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_toRightOf="@+id/restaurant_photo_img"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            tools:text="Cuisines" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/rating_text_tv"
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cuisines_tv"
+            android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_standard"
+            android:layout_toRightOf="@+id/user_rating_rtbar"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            tools:text="Good" />
+
+        <androidx.appcompat.widget.AppCompatRatingBar
+            android:id="@+id/user_rating_rtbar"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ratingbar_height"
+            android:layout_below="@+id/cuisines_tv"
+            android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_toRightOf="@+id/restaurant_photo_img"
+            android:isIndicator="true"
+            android:progressDrawable="@drawable/restaurant_user_rating_custom_ratingbar"
+            tools:rating="3" />
+
+        <androidx.appcompat.widget.AppCompatRatingBar
+            android:id="@+id/price_rtbar"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ratingbar_height"
+            android:layout_below="@+id/user_rating_rtbar"
+            android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_toRightOf="@+id/restaurant_photo_img"
+            android:isIndicator="true"
+            android:progressDrawable="@drawable/restaurant_price_custom_ratingbar"
+            tools:rating="3" />
+    </RelativeLayout>
+</layout>

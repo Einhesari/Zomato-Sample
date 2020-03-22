@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +12,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.einhesari.zomatosample.R
+import com.einhesari.zomatosample.adapter.RestaurantAdapter
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
 import com.einhesari.zomatosample.viewmodel.ViewModelProviderFactory
@@ -27,18 +28,16 @@ import com.mapbox.mapboxsdk.maps.*
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
-import kotlin.math.log
 
 
 class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
-    private lateinit var fragmentRestaurantBinding: FragmentRestaurantBinding
+    private lateinit var binding: FragmentRestaurantBinding
     private lateinit var compositeDisposable: CompositeDisposable
 
     private lateinit var mapView: MapView
@@ -51,6 +50,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private val REQUEST_CODE = 1000
     private val mapZoom = 13.0
+
+    private val adapter: RestaurantAdapter = RestaurantAdapter()
 
     @Inject
     lateinit var factory: ViewModelProviderFactory
@@ -66,9 +67,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        fragmentRestaurantBinding =
+        binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_restaurant, container, false)
-        return fragmentRestaurantBinding.root
+        return binding.root
 
     }
 
@@ -79,10 +80,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
         viewmodel = ViewModelProvider(this, factory)[RestaurantsViewModel::class.java]
 
-        mapView = fragmentRestaurantBinding.mapView
+        mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        initrecyclerView()
         getNearRestuarants()
     }
 
@@ -100,10 +102,18 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     addMarkerOnMap(latLng)
 
                 }
+                adapter.submitList(it)
             }
             .let {
                 compositeDisposable.add(it)
             }
+    }
+
+    private fun initrecyclerView() {
+        binding.restaurantRecyclerView.layoutManager =
+            LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
+        binding.restaurantRecyclerView.adapter = adapter
+
     }
 
     private fun observeUserLiveLocation() {
