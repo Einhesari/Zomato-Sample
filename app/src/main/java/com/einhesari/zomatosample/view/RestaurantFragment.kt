@@ -199,7 +199,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     context?.getResources(),
                     R.drawable.restaurant_marker
                 ),
-                true
+                false
             )
 
             initSymbolManager(it)
