@@ -3,6 +3,6 @@
     <string name="mapbox_access_token">pk.eyJ1IjoiZWluaGVzYXJpIiwiYSI6ImNrN3g2dGY5djA4Y2MzaHA5eDA3dTVpYjkifQ.4WbCd9M1BCnIMzYuagbuLA</string>
     <string name="zomato_api_key">fb8e9264e847fc28a44187844fc9e667</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="change_location_settings_canceled">We need to access your location to find your nearest restaurants</string>
+    <string name="location_settings_change_unavailable">error occurred , please try again later</string>
 </resources>

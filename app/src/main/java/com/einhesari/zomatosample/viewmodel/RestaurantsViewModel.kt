@@ -22,6 +22,7 @@ class RestaurantsViewModel @Inject constructor(
     }
 
     fun getUserLiveLocation() = locationRepository.getUserLiveLocation()
+    fun getlocationErrors() = locationRepository.getlocationErrors()
 
     fun needToMoveCamera(currentLocation: Location, lastLocation: Location?): Boolean {
         lastLocation?.let {

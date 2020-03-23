@@ -6,13 +6,16 @@ import android.os.Looper
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import com.jakewharton.rxrelay2.BehaviorRelay
+import java.lang.Error
+import java.lang.Exception
 import javax.inject.Inject
+
 
 class LocationRepository @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
     private val context: Context
 ) {
-    private val errors: BehaviorRelay<String> = BehaviorRelay.create()
+    private val locationErrors: BehaviorRelay<Exception> = BehaviorRelay.create()
     private val liveLocation: BehaviorRelay<Location> = BehaviorRelay.create()
 
     private lateinit var locationCallback: LocationCallback
@@ -32,7 +35,7 @@ class LocationRepository @Inject constructor(
             startLocationUpdates()
         }
         task.addOnFailureListener {
-            it.message?.let { errorMessage -> errors.accept(errorMessage) }
+            locationErrors.accept(it)
         }
     }
 
@@ -64,5 +67,5 @@ class LocationRepository @Inject constructor(
     }
 
     fun getUserLiveLocation() = liveLocation.hide()
-
+    fun getlocationErrors() = locationErrors.hide()
 }

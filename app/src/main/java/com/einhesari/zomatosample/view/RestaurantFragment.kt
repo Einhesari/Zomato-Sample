@@ -1,6 +1,9 @@
 package com.einhesari.zomatosample.view
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.location.Location
@@ -8,6 +11,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -21,6 +25,9 @@ import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
 import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
 import com.einhesari.zomatosample.viewmodel.ViewModelProviderFactory
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
@@ -51,6 +58,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var foundedRestaurant = ArrayList<Restaurant>()
     private val snapHelper = LinearSnapHelper()
+    private val LOCATION_SETTING_REQUEST = 2000
 
     private lateinit var compositeDisposable: CompositeDisposable
     private lateinit var mapView: MapView
@@ -59,14 +67,13 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private lateinit var symbolManager: SymbolManager
     private val RESTAURANT_MARKER_ID = "restaurant"
     private var lastLocation: Location? = null
-    private val REQUEST_CODE = 1000
+    private val PERMISSION_REQUEST_CODE = 1000
     private val DEFAULT_MAP_ZOOM = 13.0
 
     @Inject
     lateinit var factory: ViewModelProviderFactory
     private lateinit var viewmodel: RestaurantsViewModel
 
-    private lateinit var onScreenRestaurant: Restaurant
 
     var permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -94,7 +101,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        initrecyclerView()
+        initRecyclerView()
         getNearRestuarants()
     }
 
@@ -120,7 +127,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
     }
 
-    private fun initrecyclerView() {
+    private fun initRecyclerView() {
         restaurant_rv = binding.restaurantRecyclerView
         linearLayoutManager = LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
         restaurant_rv.layoutManager = linearLayoutManager
@@ -170,6 +177,20 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
             }
             .let {
+                compositeDisposable.add(it)
+            }
+    }
+
+    private fun observeLocationErrors() {
+        viewmodel.getlocationErrors()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                if (it is ApiException) {
+                    handleLocationExceptions(it)
+                }
+
+            }.let {
                 compositeDisposable.add(it)
             }
     }
@@ -267,7 +288,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 showUserLocationOnMap()
             } else {
                 requestPermissions(
-                    permissions, REQUEST_CODE
+                    permissions, PERMISSION_REQUEST_CODE
                 )
             }
         }
@@ -295,7 +316,36 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private fun showUserLocationOnMap() {
         viewmodel.initUserLocation()
         observeUserLiveLocation()
+        observeLocationErrors()
         showUserMarkerOnMap()
+    }
+
+    private fun handleLocationExceptions(exception: ApiException) {
+        when (exception.statusCode) {
+            LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                val resolvableApiException = exception as ResolvableApiException
+                resolvableApiException.statusCode
+                try {
+                    startIntentSenderForResult(
+                        resolvableApiException.resolution.intentSender,
+                        LOCATION_SETTING_REQUEST,
+                        null,
+                        0,
+                        0,
+                        0,
+                        null
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                }
+
+            }
+            LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE ->
+                Toast.makeText(
+                    context,
+                    R.string.location_settings_change_unavailable,
+                    Toast.LENGTH_LONG
+                ).show()
+        }
     }
 
     override fun onStart() {
@@ -334,4 +384,23 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.onLowMemory()
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            LOCATION_SETTING_REQUEST -> {
+                when (resultCode) {
+                    Activity.RESULT_OK ->
+                        viewmodel.initUserLocation()
+
+                    Activity.RESULT_CANCELED ->
+                        Toast.makeText(
+                            context,
+                            R.string.change_location_settings_canceled,
+                            Toast.LENGTH_LONG
+                        ).show()
+                }
+            }
+        }
+
+    }
 }
