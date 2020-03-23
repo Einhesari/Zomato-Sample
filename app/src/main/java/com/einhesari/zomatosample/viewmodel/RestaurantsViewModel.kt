@@ -2,9 +2,7 @@ package com.einhesari.zomatosample.viewmodel
 
 import android.location.Location
 import androidx.lifecycle.ViewModel
-import com.einhesari.zomatosample.model.Restaurant
 import io.reactivex.Observable
-import io.reactivex.Single
 import javax.inject.Inject
 
 class RestaurantsViewModel @Inject constructor(
@@ -22,7 +20,12 @@ class RestaurantsViewModel @Inject constructor(
     }
 
     fun getUserLiveLocation() = locationRepository.getUserLiveLocation()
-    fun getlocationErrors() = locationRepository.getlocationErrors()
+    fun errors(): Observable<Throwable> {
+        return Observable.merge(
+            locationRepository.getlocationErrors(),
+            searchRestaurantRepository.getNetworkErrors()
+        )
+    }
 
     fun needToMoveCamera(currentLocation: Location, lastLocation: Location?): Boolean {
         lastLocation?.let {
@@ -36,4 +39,9 @@ class RestaurantsViewModel @Inject constructor(
     }
 
     fun getRestaurants() = searchRestaurantRepository.getRestaurants()
+
+    override fun onCleared() {
+        super.onCleared()
+        searchRestaurantRepository.dispose()
+    }
 }

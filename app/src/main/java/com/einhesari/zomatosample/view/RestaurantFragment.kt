@@ -46,6 +46,7 @@ import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import java.lang.Exception
 import javax.inject.Inject
 
 
@@ -60,7 +61,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private val snapHelper = LinearSnapHelper()
     private val LOCATION_SETTING_REQUEST = 2000
 
-    private lateinit var compositeDisposable: CompositeDisposable
+    private val compositeDisposable = CompositeDisposable()
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
 
@@ -93,8 +94,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        compositeDisposable = CompositeDisposable()
-
         viewmodel = ViewModelProvider(this, factory)[RestaurantsViewModel::class.java]
 
         mapView = binding.mapView
@@ -103,6 +102,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
         initRecyclerView()
         getNearRestuarants()
+        observeErrors()
     }
 
     private fun getNearRestuarants() {
@@ -181,13 +181,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
     }
 
-    private fun observeLocationErrors() {
-        viewmodel.getlocationErrors()
+    private fun observeErrors() {
+        viewmodel.errors()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 if (it is ApiException) {
                     handleLocationExceptions(it)
+                } else {
+                    handleNetworkError(it)
                 }
 
             }.let {
@@ -316,7 +318,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private fun showUserLocationOnMap() {
         viewmodel.initUserLocation()
         observeUserLiveLocation()
-        observeLocationErrors()
         showUserMarkerOnMap()
     }
 
@@ -346,6 +347,10 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     Toast.LENGTH_LONG
                 ).show()
         }
+    }
+
+    private fun handleNetworkError(throwable: Throwable) {
+
     }
 
     override fun onStart() {
