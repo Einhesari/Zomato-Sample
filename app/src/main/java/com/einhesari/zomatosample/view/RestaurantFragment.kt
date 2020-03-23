@@ -81,6 +81,16 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
+    enum class ViewState {
+        InternetNotConnected,
+        PermissionDenied,
+        ChangeLocationSettingsDenied,
+        FetchRestaurantsFailed,
+        Default
+    }
+
+    private lateinit var viewState: ViewState
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -95,6 +105,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         super.onViewCreated(view, savedInstanceState)
 
         viewmodel = ViewModelProvider(this, factory)[RestaurantsViewModel::class.java]
+
+        binding.restaurantFragment = this
 
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
@@ -121,6 +133,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 }
                 adapter.submitList(it)
                 foundedRestaurant = it
+                changeFabToDefault()
             }
             .let {
                 compositeDisposable.add(it)
@@ -256,21 +269,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .build()
 
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.all {
-                it == PackageManager.PERMISSION_GRANTED
-            }) {
-            showUserLocationOnMap()
-        }
-
-    }
-
-
     override fun onMapReady(mapboxMap: MapboxMap) {
         map = mapboxMap
         map.setStyle(Style.MAPBOX_STREETS) {
@@ -319,12 +317,44 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         showUserMarkerOnMap()
     }
 
+    private fun changeFabToDefault() {
+        binding.needRetry = false
+        viewState = ViewState.Default
+    }
+
+    fun fabOnClick(view: View) {
+        when (viewState) {
+            ViewState.FetchRestaurantsFailed -> {
+                lastLocation?.let {
+                    viewmodel.findNearRestaurant(it)
+                }
+            }
+            ViewState.ChangeLocationSettingsDenied -> {
+                viewmodel.initUserLocation()
+
+            }
+            ViewState.PermissionDenied -> {
+                requestPermissions(
+                    permissions, PERMISSION_REQUEST_CODE
+                )
+            }
+            ViewState.InternetNotConnected -> {
+
+            }
+            ViewState.Default -> {
+                lastLocation?.let {
+                    moveCameraLocation(it, DEFAULT_MAP_ZOOM)
+
+                }
+            }
+        }
+        changeFabToDefault()
+    }
+
     private fun handleLocationExceptions(exception: ApiException) {
         when (exception.statusCode) {
             LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                 val resolvableApiException = exception as ResolvableApiException
-                resolvableApiException.statusCode
-                try {
                     startIntentSenderForResult(
                         resolvableApiException.resolution.intentSender,
                         LOCATION_SETTING_REQUEST,
@@ -334,20 +364,74 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                         0,
                         null
                     )
-                } catch (sendEx: IntentSender.SendIntentException) {
-                }
 
             }
-            LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE ->
+            LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+
+                viewState = ViewState.ChangeLocationSettingsDenied
+                binding.needRetry = true
+
                 Toast.makeText(
                     context,
                     R.string.location_settings_change_unavailable,
                     Toast.LENGTH_LONG
                 ).show()
+            }
+
         }
     }
 
     private fun handleNetworkError(throwable: Throwable) {
+        viewState = ViewState.FetchRestaurantsFailed
+        binding.needRetry = true
+        Toast.makeText(context, R.string.find_restaurants_failed, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode.equals(PERMISSION_REQUEST_CODE)) {
+            if (grantResults.all {
+                    it == PackageManager.PERMISSION_GRANTED
+                }) {
+                showUserLocationOnMap()
+                changeFabToDefault()
+            } else {
+                viewState = ViewState.PermissionDenied
+                binding.needRetry = true
+                Toast.makeText(context, R.string.permission_denied, Toast.LENGTH_LONG).show()
+            }
+        }
+
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            LOCATION_SETTING_REQUEST -> {
+                when (resultCode) {
+                    Activity.RESULT_OK -> {
+                        changeFabToDefault()
+                        viewmodel.initUserLocation()
+                    }
+
+                    Activity.RESULT_CANCELED -> {
+                        Toast.makeText(
+                            context,
+                            R.string.change_location_settings_canceled,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        viewState = ViewState.ChangeLocationSettingsDenied
+                        binding.needRetry = true
+                    }
+
+                }
+            }
+        }
 
     }
 
@@ -387,24 +471,5 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.onLowMemory()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            LOCATION_SETTING_REQUEST -> {
-                when (resultCode) {
-                    Activity.RESULT_OK ->
-                        viewmodel.initUserLocation()
-
-                    Activity.RESULT_CANCELED ->
-                        Toast.makeText(
-                            context,
-                            R.string.change_location_settings_canceled,
-                            Toast.LENGTH_LONG
-                        ).show()
-                }
-            }
-        }
-
-    }
 
 }

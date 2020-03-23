@@ -4,7 +4,7 @@
     <data>
 
         <variable
-            name="isloading"
+            name="needRetry"
             type="java.lang.Boolean" />
 
         <variable
@@ -24,7 +24,8 @@
             android:layout_above="@+id/restaurantRecyclerView"
             android:layout_alignParentEnd="true"
             android:layout_margin="@dimen/margin_standard"
-            app:srcCompat="@drawable/ic_my_location" />
+            android:onClick="@{(view)-> restaurantFragment.fabOnClick(view)}"
+            android:src="@{needRetry ? @drawable/ic_retry : @drawable/ic_my_location}" />
 
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
