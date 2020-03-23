@@ -12,7 +12,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_custom_card">
+        android:background="@drawable/custom_card">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/restaurant_photo_img"

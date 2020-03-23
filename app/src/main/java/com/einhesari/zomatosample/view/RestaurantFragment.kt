@@ -12,8 +12,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -40,13 +42,11 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
-import com.mapbox.mapboxsdk.style.layers.Property.TEXT_ANCHOR_BOTTOM
+import com.mapbox.mapboxsdk.style.layers.Property.*
 import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import java.lang.Exception
 import javax.inject.Inject
 
 
@@ -277,10 +277,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
             it.addImage(
                 RESTAURANT_MARKER_ID,
-                BitmapFactory.decodeResource(
-                    context?.getResources(),
-                    R.drawable.restaurant_marker
-                ),
+                AppCompatResources.getDrawable(context!!, R.drawable.restaurant_marker)!!
+                    .toBitmap(),
                 false
             )
 
@@ -309,7 +307,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             SymbolOptions()
                 .withLatLng(latLng)
                 .withIconImage(RESTAURANT_MARKER_ID)
-                .withIconSize(1.0f)
+                .withIconSize(2.0f)
                 .withTextAnchor(TEXT_ANCHOR_BOTTOM)
                 .withTextField(text)
         )
@@ -408,4 +406,5 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         }
 
     }
+
 }
