@@ -17,7 +17,7 @@ class LocationRepository @Inject constructor(
 
     private lateinit var locationCallback: LocationCallback
 
-    private val requestPriority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    private val requestPriority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
     private var locationRequest: LocationRequest? = null
 
     private val locationRequestInterval = 10000L
