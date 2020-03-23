@@ -1,5 +1,6 @@
 package com.einhesari.zomatosample.adapter
 
+import android.location.Location
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
@@ -9,9 +10,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.databinding.RestaurantItemBinding
 import com.einhesari.zomatosample.model.Restaurant
+import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.PublishRelay
 
 class RestaurantAdapter :
     ListAdapter<Restaurant, RestaurantAdapter.RestaurantViewHolder>(DIFF_CALLBACK()) {
+
 
 
     class DIFF_CALLBACK : DiffUtil.ItemCallback<Restaurant>() {

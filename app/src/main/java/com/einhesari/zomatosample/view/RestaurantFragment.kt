@@ -14,9 +14,11 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.adapter.RestaurantAdapter
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
+import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
 import com.einhesari.zomatosample.viewmodel.ViewModelProviderFactory
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -25,10 +27,14 @@ import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
-import com.mapbox.mapboxsdk.maps.*
+import com.mapbox.mapboxsdk.maps.MapView
+import com.mapbox.mapboxsdk.maps.MapboxMap
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
+import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.ICON_ROTATION_ALIGNMENT_VIEWPORT
+import com.mapbox.mapboxsdk.style.layers.Property.TEXT_ANCHOR_BOTTOM
 import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -40,27 +46,27 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
 
     private lateinit var binding: FragmentRestaurantBinding
-    private lateinit var compositeDisposable: CompositeDisposable
+    private lateinit var restaurant_rv: RecyclerView
+    private val adapter: RestaurantAdapter = RestaurantAdapter()
+    private lateinit var linearLayoutManager: LinearLayoutManager
+    private var foundedRestaurant = ArrayList<Restaurant>()
+    private val snapHelper = LinearSnapHelper()
 
+    private lateinit var compositeDisposable: CompositeDisposable
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
+
     private lateinit var symbolManager: SymbolManager
-
     private val RESTAURANT_MARKER_ID = "restaurant"
-
     private var lastLocation: Location? = null
-
     private val REQUEST_CODE = 1000
-    private val mapZoom = 13.0
-
-    private val adapter: RestaurantAdapter = RestaurantAdapter()
+    private val DEFAULT_MAP_ZOOM = 13.0
 
     @Inject
     lateinit var factory: ViewModelProviderFactory
-
     private lateinit var viewmodel: RestaurantsViewModel
 
-    private val snapHelper = LinearSnapHelper()
+    private lateinit var onScreenRestaurant: Restaurant
 
     var permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -103,10 +109,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                             it.restaurantLocation.latitude.toDouble(),
                             it.restaurantLocation.longitude.toDouble()
                         )
-                    addMarkerOnMap(latLng)
+                    addMarkerOnMap(latLng, it.name)
 
                 }
                 adapter.submitList(it)
+                foundedRestaurant = it
             }
             .let {
                 compositeDisposable.add(it)
@@ -114,10 +121,33 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun initrecyclerView() {
-        binding.restaurantRecyclerView.layoutManager =
-            LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
-        binding.restaurantRecyclerView.adapter = adapter
-        snapHelper.attachToRecyclerView(binding.restaurantRecyclerView)
+        restaurant_rv = binding.restaurantRecyclerView
+        linearLayoutManager = LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
+        restaurant_rv.layoutManager = linearLayoutManager
+        restaurant_rv.adapter = adapter
+        snapHelper.attachToRecyclerView(restaurant_rv)
+        restaurant_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_IDLE -> {
+                        val restaurantPosition =
+                            linearLayoutManager.findLastCompletelyVisibleItemPosition()
+                        if (restaurantPosition < 0) return
+
+                        val restaurantLocation = Location("Restaurant Location")
+                        restaurantLocation.apply {
+                            latitude =
+                                foundedRestaurant[restaurantPosition].restaurantLocation.latitude.toDouble()
+                            longitude =
+                                foundedRestaurant[restaurantPosition].restaurantLocation.longitude.toDouble()
+                        }
+
+                        moveCameraLocation(restaurantLocation, null)
+                    }
+                }
+            }
+        })
 
     }
 
@@ -126,14 +156,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
+
                 lastLocation?.also { lastLocation ->
                     if (viewmodel.needToMoveCamera(it, lastLocation)) {
-                        moveCameraLocation(it)
+                        moveCameraLocation(it, DEFAULT_MAP_ZOOM)
                     }
                     this.lastLocation = it
                 } ?: run {
                     lastLocation = it
-                    moveCameraLocation(it)
+                    moveCameraLocation(it, DEFAULT_MAP_ZOOM)
                     viewmodel.findNearRestaurant(it)
                 }
 
@@ -165,17 +196,30 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
 
-    private fun moveCameraLocation(location: Location) {
-        map.animateCamera(
-            CameraUpdateFactory.newLatLngZoom(
-                LatLng(
-                    location.latitude,
-                    location.longitude
-                ), mapZoom
+    private fun moveCameraLocation(location: Location, zoom: Double?) {
+        zoom?.let {
+            map.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        location.latitude,
+                        location.longitude
+                    ), zoom
+                )
             )
-        )
+        } ?: run {
+            map.animateCamera(
+                CameraUpdateFactory.newLatLng(
+                    LatLng(
+                        location.latitude,
+                        location.longitude
+                    )
+                )
+            )
+        }
+
 
     }
+
 
     private fun createLocationComponentOptions() =
         LocationComponentOptions.builder(context!!)
@@ -237,12 +281,14 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         symbolManager.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
     }
 
-    private fun addMarkerOnMap(latLng: LatLng) {
+    private fun addMarkerOnMap(latLng: LatLng, text: String) {
         symbolManager.create(
             SymbolOptions()
                 .withLatLng(latLng)
                 .withIconImage(RESTAURANT_MARKER_ID)
                 .withIconSize(1.0f)
+                .withTextAnchor(TEXT_ANCHOR_BOTTOM)
+                .withTextField(text)
         )
     }
 
