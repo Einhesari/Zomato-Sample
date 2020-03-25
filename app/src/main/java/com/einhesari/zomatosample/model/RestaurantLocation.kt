@@ -23,5 +23,5 @@ data class RestaurantLocation(
     val zipcode: String,
 
     @SerializedName("country_id")
-    val country_id: String
+    val countryId: String
 )
