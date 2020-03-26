@@ -12,10 +12,10 @@ import com.einhesari.zomatosample.databinding.RestaurantItemBinding
 import com.einhesari.zomatosample.model.Restaurant
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
+import kotlinx.android.synthetic.main.restaurant_item.view.*
 
 class RestaurantAdapter :
     ListAdapter<Restaurant, RestaurantAdapter.RestaurantViewHolder>(DIFF_CALLBACK()) {
-
 
 
     class DIFF_CALLBACK : DiffUtil.ItemCallback<Restaurant>() {
@@ -44,5 +44,10 @@ class RestaurantAdapter :
     }
 
     class RestaurantViewHolder(val binding: RestaurantItemBinding) :
-        RecyclerView.ViewHolder(binding.root)
+        RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.restaurant_name_tv.isSelected = true
+            binding.root.cuisines_tv.isSelected = true
+        }
+    }
 }

@@ -27,8 +27,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_small"
             android:layout_toRightOf="@+id/restaurant_photo_img"
             android:ellipsize="marquee"
+            android:paddingRight="@dimen/margin_small"
             android:singleLine="true"
             android:text="@{restaurant.name}"
             tools:text="Restaurant Name" />
@@ -42,6 +44,7 @@
             android:layout_marginLeft="@dimen/margin_standard"
             android:layout_toRightOf="@+id/restaurant_photo_img"
             android:ellipsize="marquee"
+            android:paddingRight="@dimen/margin_small"
             android:singleLine="true"
             android:text="@{restaurant.cuisines}"
             tools:text="Cuisines" />
