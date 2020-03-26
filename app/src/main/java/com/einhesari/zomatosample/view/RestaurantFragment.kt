@@ -3,9 +3,7 @@ package com.einhesari.zomatosample.view
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -48,7 +46,6 @@ import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_restaurant.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -87,7 +84,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
-    enum class ViewState {
+    enum class FabViewState {
         InternetNotConnected,
         PermissionDenied,
         ChangeLocationSettingsDenied,
@@ -95,7 +92,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         Default
     }
 
-    private lateinit var viewState: ViewState
+    private var fabViewState = FabViewState.Default
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -364,29 +361,29 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private fun changeFabToDefault() {
         binding.needRetry = false
-        viewState = ViewState.Default
+        fabViewState = FabViewState.Default
     }
 
     fun fabOnClick(view: View) {
-        when (viewState) {
-            ViewState.FetchRestaurantsFailed -> {
+        when (fabViewState) {
+            FabViewState.FetchRestaurantsFailed -> {
                 lastLocation?.let {
                     viewmodel.findNearRestaurant(it)
                 }
             }
-            ViewState.ChangeLocationSettingsDenied -> {
+            FabViewState.ChangeLocationSettingsDenied -> {
                 viewmodel.initUserLocation()
 
             }
-            ViewState.PermissionDenied -> {
+            FabViewState.PermissionDenied -> {
                 requestPermissions(
                     permissions, PERMISSION_REQUEST_CODE
                 )
             }
-            ViewState.InternetNotConnected -> {
+            FabViewState.InternetNotConnected -> {
 
             }
-            ViewState.Default -> {
+            FabViewState.Default -> {
                 lastLocation?.let {
                     moveCameraLocation(it, DEFAULT_MAP_ZOOM)
 
@@ -413,7 +410,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
             LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
 
-                viewState = ViewState.ChangeLocationSettingsDenied
+                fabViewState = FabViewState.ChangeLocationSettingsDenied
                 binding.needRetry = true
 
                 Toast.makeText(
@@ -427,7 +424,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun handleNetworkError(throwable: Throwable) {
-        viewState = ViewState.FetchRestaurantsFailed
+        fabViewState = FabViewState.FetchRestaurantsFailed
         binding.needRetry = true
         Toast.makeText(context, R.string.find_restaurants_failed, Toast.LENGTH_LONG).show()
     }
@@ -445,7 +442,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 showUserLocationOnMap()
                 changeFabToDefault()
             } else {
-                viewState = ViewState.PermissionDenied
+                fabViewState = FabViewState.PermissionDenied
                 binding.needRetry = true
                 Toast.makeText(context, R.string.permission_denied, Toast.LENGTH_LONG).show()
             }
@@ -470,7 +467,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                             R.string.change_location_settings_canceled,
                             Toast.LENGTH_LONG
                         ).show()
-                        viewState = ViewState.ChangeLocationSettingsDenied
+                        fabViewState = FabViewState.ChangeLocationSettingsDenied
                         binding.needRetry = true
                     }
 
