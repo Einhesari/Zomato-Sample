@@ -327,7 +327,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         map = mapboxMap
-        map.setStyle(Style.MAPBOX_STREETS) {
+        map.setStyle(Style.MAPBOX_STREETS)
+        {
 
             it.addImage(
                 restauratnMarkerId,
@@ -351,7 +352,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private fun initSymbolManager(style: Style) {
         symbolManager = SymbolManager(mapView, map, style)
-        symbolManager.iconAllowOverlap = true
         symbolManager.iconTranslate = arrayOf(-4f, 5f)
         symbolManager.iconRotationAlignment = ICON_ROTATION_ALIGNMENT_VIEWPORT
     }
@@ -362,8 +362,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 .withLatLng(latLng)
                 .withIconImage(restauratnMarkerId)
                 .withIconSize(2.0f)
-                .withTextAnchor(TEXT_ANCHOR_BOTTOM)
                 .withTextField(text)
+                .withTextOffset(arrayOf(0f, -1.7f))
         )
     }
 
