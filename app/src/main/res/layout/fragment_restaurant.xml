@@ -44,15 +44,15 @@
         <View
             android:id="@+id/view"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:layout_alignParentTop="true"
             android:layout_margin="@dimen/margin_small"
             android:background="@drawable/custom_card"
             android:paddingStart="@dimen/padding_large" />
 
 
-        <androidx.appcompat.widget.AppCompatAutoCompleteTextView
-            android:id="@+id/search_edt"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/searchEdt"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_alignParentTop="true"
@@ -62,8 +62,7 @@
             android:hint="@string/search_hint"
             android:paddingStart="@dimen/padding_large"
             android:singleLine="true"
-            android:textColor="@color/black"
-            android:textColorHint="@color/colorAccent" />
+            android:textColor="@color/black" />
     </RelativeLayout>
 
 </layout>

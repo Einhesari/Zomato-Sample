@@ -5,7 +5,7 @@ import com.einhesari.zomatosample.model.RestaurantSearchResponse
 import com.einhesari.zomatosample.network.ApiService
 import com.einhesari.zomatosample.viewmodel.LocationRepository
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
-import com.einhesari.zomatosample.viewmodel.SearchRestaurantRepository
+import com.einhesari.zomatosample.viewmodel.FindRestaurantRepository
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -26,7 +26,7 @@ class RestaurantViewModelTest {
     @Mock
     lateinit var locationRepository: LocationRepository
 
-    lateinit var searchRestaurantRepository: SearchRestaurantRepository
+    lateinit var findRestaurantRepository: FindRestaurantRepository
 
     @Mock
     lateinit var apiService: ApiService
@@ -353,8 +353,8 @@ class RestaurantViewModelTest {
 
         RxAndroidPlugins.setInitMainThreadSchedulerHandler { Schedulers.trampoline() }
         RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
-        searchRestaurantRepository = SearchRestaurantRepository(apiService)
-        viewModel = RestaurantsViewModel(locationRepository, searchRestaurantRepository)
+        findRestaurantRepository = FindRestaurantRepository(apiService)
+        viewModel = RestaurantsViewModel(locationRepository, findRestaurantRepository)
 
         `when`(location.longitude).thenReturn(longitude)
         `when`(location.latitude).thenReturn(latitude)

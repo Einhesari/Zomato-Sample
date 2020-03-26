@@ -59,17 +59,17 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var foundedRestaurant = ArrayList<Restaurant>()
     private val snapHelper = LinearSnapHelper()
-    private val LOCATION_SETTING_REQUEST = 2000
+    private val locationSettingRequestCode = 2000
 
     private val compositeDisposable = CompositeDisposable()
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
 
     private lateinit var symbolManager: SymbolManager
-    private val RESTAURANT_MARKER_ID = "restaurant"
+    private val restauratnMarkerId = "restaurant"
     private var lastLocation: Location? = null
-    private val PERMISSION_REQUEST_CODE = 1000
-    private val DEFAULT_MAP_ZOOM = 13.0
+    private val PermissionRequestCode = 1000
+    private val defaultMapZoom = 13.0
 
     private val searchInputDelay = 300L
     private val searchInputDelayTimeUnit = TimeUnit.MILLISECONDS
@@ -116,11 +116,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         initRecyclerView()
+        initDataIntraction()
+
+    }
+
+    private fun initDataIntraction() {
         getNearRestuarants()
         observeErrors()
         searchRestaurant()
         observeSearchResult()
-
     }
 
     private fun getNearRestuarants() {
@@ -182,15 +186,14 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-
                 lastLocation?.also { lastLocation ->
                     if (viewmodel.needToMoveCamera(it, lastLocation)) {
-                        moveCameraLocation(it, DEFAULT_MAP_ZOOM)
+                        moveCameraLocation(it, defaultMapZoom)
                     }
                     this.lastLocation = it
                 } ?: run {
                     lastLocation = it
-                    moveCameraLocation(it, DEFAULT_MAP_ZOOM)
+                    moveCameraLocation(it, defaultMapZoom)
                     viewmodel.findNearRestaurant(it)
                 }
 
@@ -204,7 +207,12 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         viewmodel.getSearchResult()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                adapter.submitList(it)
+                if (it.size > 0)
+                    adapter.submitList(it)
+                else {
+                    adapter.submitList(foundedRestaurant)
+                    Toast.makeText(context, R.string.no_restaurant_found, Toast.LENGTH_LONG).show()
+                }
             }.let {
                 compositeDisposable.add(it)
             }
@@ -316,7 +324,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         map.setStyle(Style.MAPBOX_STREETS) {
 
             it.addImage(
-                RESTAURANT_MARKER_ID,
+                restauratnMarkerId,
                 AppCompatResources.getDrawable(context!!, R.drawable.restaurant_marker)!!
                     .toBitmap(),
                 false
@@ -328,7 +336,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 showUserLocationOnMap()
             } else {
                 requestPermissions(
-                    permissions, PERMISSION_REQUEST_CODE
+                    permissions, PermissionRequestCode
                 )
             }
         }
@@ -346,7 +354,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         symbolManager.create(
             SymbolOptions()
                 .withLatLng(latLng)
-                .withIconImage(RESTAURANT_MARKER_ID)
+                .withIconImage(restauratnMarkerId)
                 .withIconSize(2.0f)
                 .withTextAnchor(TEXT_ANCHOR_BOTTOM)
                 .withTextField(text)
@@ -377,7 +385,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
             FabViewState.PermissionDenied -> {
                 requestPermissions(
-                    permissions, PERMISSION_REQUEST_CODE
+                    permissions, PermissionRequestCode
                 )
             }
             FabViewState.InternetNotConnected -> {
@@ -385,7 +393,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
             FabViewState.Default -> {
                 lastLocation?.let {
-                    moveCameraLocation(it, DEFAULT_MAP_ZOOM)
+                    moveCameraLocation(it, defaultMapZoom)
 
                 }
             }
@@ -399,7 +407,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 val resolvableApiException = exception as ResolvableApiException
                 startIntentSenderForResult(
                     resolvableApiException.resolution.intentSender,
-                    LOCATION_SETTING_REQUEST,
+                    locationSettingRequestCode,
                     null,
                     0,
                     0,
@@ -435,7 +443,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode.equals(PERMISSION_REQUEST_CODE)) {
+        if (requestCode.equals(PermissionRequestCode)) {
             if (grantResults.all {
                     it == PackageManager.PERMISSION_GRANTED
                 }) {
@@ -454,7 +462,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            LOCATION_SETTING_REQUEST -> {
+            locationSettingRequestCode -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
                         changeFabToDefault()

@@ -1,25 +1,21 @@
 package com.einhesari.zomatosample.viewmodel
 
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.einhesari.zomatosample.model.Restaurant
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class RestaurantsViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
-    private val searchRestaurantRepository: SearchRestaurantRepository
+    private val findRestaurantRepository: FindRestaurantRepository
 ) :
     ViewModel() {
 
     private val userMovementThreshold = 1000f
     private val searchResult = BehaviorRelay.create<List<Restaurant>>()
-    private val searchErrors: BehaviorRelay<Throwable> = BehaviorRelay.create()
     private val compositeDisposable = CompositeDisposable()
 
     fun initUserLocation() {
@@ -32,7 +28,7 @@ class RestaurantsViewModel @Inject constructor(
     fun errors(): Observable<Throwable> {
         return Observable.merge(
             locationRepository.getlocationErrors(),
-            searchRestaurantRepository.getNetworkErrors()
+            findRestaurantRepository.getNetworkErrors()
         )
     }
 
@@ -44,10 +40,10 @@ class RestaurantsViewModel @Inject constructor(
     }
 
     fun findNearRestaurant(location: Location) {
-        searchRestaurantRepository.findRestaurant(location)
+        findRestaurantRepository.findRestaurant(location)
     }
 
-    fun getRestaurants() = searchRestaurantRepository.getRestaurants()
+    fun getRestaurants() = findRestaurantRepository.getRestaurants()
     fun getSearchResult() = searchResult.hide()
 
 
@@ -65,7 +61,6 @@ class RestaurantsViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        searchRestaurantRepository.dispose()
-        compositeDisposable.dispose()
+        findRestaurantRepository.dispose()
     }
 }

@@ -10,7 +10,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
-class SearchRestaurantRepository @Inject constructor(private val apiService: ApiService) {
+class FindRestaurantRepository @Inject constructor(private val apiService: ApiService) {
 
     private val searchRadius = "1000" // in meters
     private val restaurants: BehaviorRelay<ArrayList<Restaurant>> = BehaviorRelay.create()
