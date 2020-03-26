@@ -1,6 +1,7 @@
 package com.einhesari.zomatosample
 
 import android.location.Location
+import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.model.RestaurantSearchResponse
 import com.einhesari.zomatosample.network.ApiService
 import com.einhesari.zomatosample.viewmodel.LocationRepository
@@ -346,6 +347,7 @@ class RestaurantViewModelTest {
     private val gson = Gson()
     private val networkErrorDesc = "Some netwrok error"
     private val locationErrorDesc = "Some location api error"
+    private lateinit var foundedRestaurants: ArrayList<Restaurant>
 
     @Before
     fun setUp() {
@@ -420,6 +422,37 @@ class RestaurantViewModelTest {
             errorsObserver.valueCount() == 2 &&
                     errorsObserver.values()[0].message == locationErrorDesc &&
                     errorsObserver.values()[1].message == networkErrorDesc
+        }
+    }
+
+    @Test
+    fun searchRestaurants() {
+        val response =
+            gson.fromJson(restaurantSearchResponse, RestaurantSearchResponse::class.java)
+        `when`(
+            apiService.findRestaurant(
+                location.latitude.toString(),
+                location.longitude.toString(),
+                radius.toString()
+            )
+        ).thenReturn(Single.just(response))
+        viewModel.findNearRestaurant(location)
+        viewModel.getRestaurants().subscribe {
+            foundedRestaurants = it
+        }
+        val nameSearchQuery = "t b"
+        val cuisineSearchQuery = "r, f"
+        viewModel.searchRestaurant(nameSearchQuery, foundedRestaurants)
+        val nameSearchResult = viewModel.getSearchResult().test()
+        nameSearchResult.assertValue {
+            it.size == 1 &&
+                    it[0].name == "In-N-Out Burger"
+        }
+        viewModel.searchRestaurant(cuisineSearchQuery, foundedRestaurants)
+        val cuisineSearchResult = viewModel.getSearchResult().test()
+        cuisineSearchResult.assertValue {
+            it.size == 1 &&
+                    it[0].cuisines == "Burger, Fast Food"
         }
     }
 }
