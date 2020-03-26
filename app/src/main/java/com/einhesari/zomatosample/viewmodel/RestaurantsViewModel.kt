@@ -52,7 +52,10 @@ class RestaurantsViewModel @Inject constructor(
         val result = ArrayList<Restaurant>()
         restaurants.forEach {
             val restaurantNameWithoutSpace = it.name.replace("\\s".toRegex(), "")
+            val restaurantCuisineWithoutSpace = it.cuisines.replace("\\s".toRegex(), "")
             if (restaurantNameWithoutSpace.contains(queryWithoutSpace, true)) {
+                result.add(it)
+            }else if(restaurantCuisineWithoutSpace.contains(queryWithoutSpace, true)){
                 result.add(it)
             }
         }
