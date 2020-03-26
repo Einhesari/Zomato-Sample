@@ -115,9 +115,14 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        initRecyclerView()
+        initViewIntraction()
         initDataIntraction()
 
+    }
+
+    private fun initViewIntraction() {
+        binding.restaurantProgressBar.show()
+        initRecyclerView()
     }
 
     private fun initDataIntraction() {
@@ -144,6 +149,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 adapter.submitList(it)
                 foundedRestaurant = it
                 changeFabToDefault()
+                binding.restaurantProgressBar.hide()
             }
             .let {
                 compositeDisposable.add(it)
@@ -377,16 +383,19 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             FabViewState.FetchRestaurantsFailed -> {
                 lastLocation?.let {
                     viewmodel.findNearRestaurant(it)
+                    binding.restaurantProgressBar.show()
                 }
             }
             FabViewState.ChangeLocationSettingsDenied -> {
                 viewmodel.initUserLocation()
+                binding.restaurantProgressBar.show()
 
             }
             FabViewState.PermissionDenied -> {
                 requestPermissions(
                     permissions, PermissionRequestCode
                 )
+                binding.restaurantProgressBar.show()
             }
             FabViewState.InternetNotConnected -> {
 
@@ -420,7 +429,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
                 fabViewState = FabViewState.ChangeLocationSettingsDenied
                 binding.needRetry = true
-
+                binding.restaurantProgressBar.hide()
                 Toast.makeText(
                     context,
                     R.string.location_settings_change_unavailable,
@@ -435,6 +444,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         fabViewState = FabViewState.FetchRestaurantsFailed
         binding.needRetry = true
         Toast.makeText(context, R.string.find_restaurants_failed, Toast.LENGTH_LONG).show()
+        binding.restaurantProgressBar.hide()
     }
 
     override fun onRequestPermissionsResult(
@@ -453,6 +463,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 fabViewState = FabViewState.PermissionDenied
                 binding.needRetry = true
                 Toast.makeText(context, R.string.permission_denied, Toast.LENGTH_LONG).show()
+                binding.restaurantProgressBar.hide()
             }
         }
 

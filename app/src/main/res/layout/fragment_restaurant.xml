@@ -36,6 +36,8 @@
             android:id="@+id/restaurantRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_above="@id/restaurantProgressBar"
+            android:layout_marginBottom="@dimen/margin_medium"
             android:layout_alignParentBottom="true"
             android:padding="@dimen/padding_small"
             tools:itemCount="1"
@@ -63,6 +65,16 @@
             android:paddingStart="@dimen/padding_large"
             android:singleLine="true"
             android:textColor="@color/black" />
+
+        <androidx.core.widget.ContentLoadingProgressBar
+            android:id="@+id/restaurantProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_centerHorizontal="true"
+            android:indeterminate="true"
+            android:layout_marginBottom="@dimen/margin_standard" />
     </RelativeLayout>
 
 </layout>
