@@ -7,4 +7,5 @@
     <string name="location_settings_change_unavailable">error occurred , please try again later</string>
     <string name="permission_denied">In order to proceed we need your location</string>
     <string name="find_restaurants_failed">Failed to find your nearest restaurants , please try again</string>
+    <string name="search_hint">Search here</string>
 </resources>

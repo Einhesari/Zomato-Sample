@@ -4,6 +4,7 @@ import android.location.Location
 import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.network.ApiService
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -36,7 +37,10 @@ class SearchRestaurantRepository @Inject constructor(private val apiService: Api
             .let { compositeDisposable.add(it) }
     }
 
-    fun getRestaurants() = restaurants.hide()
+    fun getRestaurants(): Observable<ArrayList<Restaurant>> {
+        return restaurants.hide()
+    }
+
     fun getNetworkErrors() = errors.hide()
 
     fun dispose() {

@@ -30,6 +30,7 @@ import com.einhesari.zomatosample.viewmodel.ViewModelProviderFactory
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationSettingsStatusCodes
+import com.jakewharton.rxbinding3.widget.textChanges
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
@@ -47,6 +48,8 @@ import dagger.android.support.DaggerFragment
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_restaurant.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
@@ -70,6 +73,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private var lastLocation: Location? = null
     private val PERMISSION_REQUEST_CODE = 1000
     private val DEFAULT_MAP_ZOOM = 13.0
+
+    private val searchInputDelay = 300L
+    private val searchInputDelayTimeUnit = TimeUnit.MILLISECONDS
 
     @Inject
     lateinit var factory: ViewModelProviderFactory
@@ -115,6 +121,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         initRecyclerView()
         getNearRestuarants()
         observeErrors()
+        searchRestaurant()
+        observeSearchResult()
+
     }
 
     private fun getNearRestuarants() {
@@ -194,6 +203,17 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
     }
 
+    private fun observeSearchResult() {
+        viewmodel.getSearchResult()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                adapter.submitList(it)
+            }.let {
+                compositeDisposable.add(it)
+            }
+
+    }
+
     private fun observeErrors() {
         viewmodel.errors()
             .subscribeOn(Schedulers.io())
@@ -208,6 +228,31 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }.let {
                 compositeDisposable.add(it)
             }
+    }
+
+    private fun searchRestaurant() {
+        binding.searchEdt
+            .textChanges()
+            .skipInitialValue()
+            .debounce(searchInputDelay, searchInputDelayTimeUnit)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                if (it.isNotBlank()) {
+                    viewmodel.searchRestaurant(it.toString(), foundedRestaurant)
+
+                } else {
+                    handleEmptySearchQuery()
+                }
+            }, {
+
+            }).let {
+                compositeDisposable.add(it)
+            }
+
+    }
+
+    private fun handleEmptySearchQuery() {
+        adapter.submitList(foundedRestaurant)
     }
 
     private fun showUserMarkerOnMap() {
@@ -355,15 +400,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         when (exception.statusCode) {
             LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                 val resolvableApiException = exception as ResolvableApiException
-                    startIntentSenderForResult(
-                        resolvableApiException.resolution.intentSender,
-                        LOCATION_SETTING_REQUEST,
-                        null,
-                        0,
-                        0,
-                        0,
-                        null
-                    )
+                startIntentSenderForResult(
+                    resolvableApiException.resolution.intentSender,
+                    LOCATION_SETTING_REQUEST,
+                    null,
+                    0,
+                    0,
+                    0,
+                    null
+                )
 
             }
             LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {

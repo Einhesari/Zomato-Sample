@@ -38,7 +38,32 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:padding="@dimen/padding_small"
+            tools:itemCount="1"
             tools:listitem="@layout/restaurant_item" />
+
+        <View
+            android:id="@+id/view"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentTop="true"
+            android:layout_margin="@dimen/margin_small"
+            android:background="@drawable/custom_card"
+            android:paddingStart="@dimen/padding_large" />
+
+
+        <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+            android:id="@+id/search_edt"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentTop="true"
+            android:layout_margin="@dimen/margin_small"
+            android:autofillHints="hello"
+            android:background="@android:color/transparent"
+            android:hint="@string/search_hint"
+            android:paddingStart="@dimen/padding_large"
+            android:singleLine="true"
+            android:textColor="@color/black"
+            android:textColorHint="@color/colorAccent" />
     </RelativeLayout>
 
 </layout>
