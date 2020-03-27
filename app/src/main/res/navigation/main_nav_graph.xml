@@ -7,5 +7,22 @@
     <fragment
         android:id="@+id/restaurantFragment"
         android:name="com.einhesari.zomatosample.view.RestaurantFragment"
-        android:label="RestuarantFragment" />
+        android:label="RestuarantFragment" >
+        <action
+            android:id="@+id/action_restaurantFragment_to_restaurantDetailFragment"
+            app:destination="@id/restaurantDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+    <fragment
+        android:id="@+id/restaurantDetailFragment"
+        android:name="com.einhesari.zomatosample.view.RestaurantDetailFragment"
+        android:label="fragment_restaurant_detail"
+        tools:layout="@layout/fragment_restaurant_detail" >
+        <argument
+            android:name="Restaurant"
+            app:argType="com.einhesari.zomatosample.model.Restaurant" />
+    </fragment>
 </navigation>

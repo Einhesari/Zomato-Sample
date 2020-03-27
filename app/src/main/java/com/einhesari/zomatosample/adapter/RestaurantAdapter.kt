@@ -12,11 +12,13 @@ import com.einhesari.zomatosample.databinding.RestaurantItemBinding
 import com.einhesari.zomatosample.model.Restaurant
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.restaurant_item.view.*
 
 class RestaurantAdapter :
     ListAdapter<Restaurant, RestaurantAdapter.RestaurantViewHolder>(DIFF_CALLBACK()) {
 
+    private val onItemClick = PublishRelay.create<Restaurant>()
 
     class DIFF_CALLBACK : DiffUtil.ItemCallback<Restaurant>() {
         override fun areItemsTheSame(oldItem: Restaurant, newItem: Restaurant): Boolean {
@@ -40,8 +42,15 @@ class RestaurantAdapter :
     }
 
     override fun onBindViewHolder(holder: RestaurantViewHolder, position: Int) {
-        holder.binding.restaurant = getItem(position)
+        val restaurant = getItem(position)
+        holder.binding.restaurant = restaurant
+        holder.itemView.setOnClickListener {
+            onItemClick.accept(restaurant)
+        }
     }
+
+    fun selectedRestaurant() = onItemClick.hide()
+
 
     class RestaurantViewHolder(val binding: RestaurantItemBinding) :
         RecyclerView.ViewHolder(binding.root) {

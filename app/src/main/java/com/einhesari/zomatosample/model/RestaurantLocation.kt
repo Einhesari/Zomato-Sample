@@ -1,7 +1,10 @@
 package com.einhesari.zomatosample.model
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class RestaurantLocation(
 
     @SerializedName("address")
@@ -24,4 +27,4 @@ data class RestaurantLocation(
 
     @SerializedName("country_id")
     val countryId: String
-)
+) : Parcelable

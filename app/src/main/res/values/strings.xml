@@ -9,4 +9,6 @@
     <string name="find_restaurants_failed">Failed to find your nearest restaurants , please try again</string>
     <string name="search_hint">Restaurant name, cuisine,…</string>
     <string name="no_restaurant_found">No restaurant found!</string>
+    <string name="selected_restauratn_bundle_key">selected_restaurant</string>
+
 </resources>

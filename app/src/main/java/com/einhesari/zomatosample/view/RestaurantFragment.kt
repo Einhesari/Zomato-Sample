@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -130,6 +131,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         observeErrors()
         searchRestaurant()
         observeSearchResult()
+
     }
 
     private fun getNearRestuarants() {
@@ -157,11 +159,13 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun initRecyclerView() {
+
         restaurant_rv = binding.restaurantRecyclerView
-        linearLayoutManager = LinearLayoutManager(context!!, LinearLayoutManager.HORIZONTAL, false)
+        linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         restaurant_rv.layoutManager = linearLayoutManager
         restaurant_rv.adapter = adapter
         snapHelper.attachToRecyclerView(restaurant_rv)
+
         restaurant_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -184,6 +188,20 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 }
             }
         })
+        adapter.selectedRestaurant()
+            .subscribe {
+                val navItem = Bundle()
+                navItem.putParcelable(
+                    context!!.getString(R.string.selected_restauratn_bundle_key),
+                    it
+                )
+                findNavController().navigate(
+                    R.id.action_restaurantFragment_to_restaurantDetailFragment,
+                    navItem
+                )
+            }.let {
+                compositeDisposable.add(it)
+            }
 
     }
 

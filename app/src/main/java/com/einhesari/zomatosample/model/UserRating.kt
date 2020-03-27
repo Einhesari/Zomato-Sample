@@ -1,7 +1,10 @@
 package com.einhesari.zomatosample.model
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class UserRating(
 
     @SerializedName("aggregate_rating")
@@ -16,4 +19,4 @@ data class UserRating(
     @SerializedName("votes")
     val votes: Int
 
-)
+) : Parcelable
