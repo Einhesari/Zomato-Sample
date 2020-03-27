@@ -16,15 +16,13 @@ class RestaurantsViewModel @Inject constructor(
 
     private val userMovementThreshold = 1000f
     private val searchResult = BehaviorRelay.create<List<Restaurant>>()
-    private val compositeDisposable = CompositeDisposable()
 
     fun initUserLocation() {
-        locationRepository.createLocationRequest()
-        locationRepository.setupLocationChangeCallBack()
         locationRepository.checkLocationServiceAndStartLocationUpdate()
     }
 
     fun getUserLiveLocation() = locationRepository.getUserLiveLocation()
+
     fun errors(): Observable<Throwable> {
         return Observable.merge(
             locationRepository.getlocationErrors(),

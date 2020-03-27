@@ -13,22 +13,21 @@ import javax.inject.Inject
 
 class LocationRepository @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient,
+    private val locationRequest: LocationRequest,
     private val context: Context
 ) {
+
     private val locationErrors: BehaviorRelay<Exception> = BehaviorRelay.create()
     private val liveLocation: BehaviorRelay<Location> = BehaviorRelay.create()
-
     private lateinit var locationCallback: LocationCallback
 
-    private val requestPriority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
-    private var locationRequest: LocationRequest? = null
-
-    private val locationRequestInterval = 10000L
-    private val fastestRequestInterval = 5000L
+    init {
+        setupLocationChangeCallBack()
+    }
 
     fun checkLocationServiceAndStartLocationUpdate() {
         val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest!!)
+            .addLocationRequest(locationRequest)
         val client: SettingsClient = LocationServices.getSettingsClient(context)
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
         task.addOnSuccessListener { locationSettingsResponse ->
@@ -54,17 +53,11 @@ class LocationRepository @Inject constructor(
                 for (location in locationResult.locations) {
                     liveLocation.accept(location)
                 }
+                fusedLocationClient.removeLocationUpdates(locationCallback)
             }
         }
     }
 
-    fun createLocationRequest() {
-        locationRequest = LocationRequest.create()?.apply {
-            interval = locationRequestInterval
-            fastestInterval = fastestRequestInterval
-            priority = requestPriority
-        }
-    }
 
     fun getUserLiveLocation() = liveLocation.hide()
     fun getlocationErrors() = locationErrors.hide()

@@ -17,7 +17,7 @@ import javax.inject.Singleton
         ViewModelFactoryModule::class,
         ViewModelModule::class,
         ApiModule::class,
-        FusedLocationClientModule::class
+        LocationModule::class
 
     ]
 )

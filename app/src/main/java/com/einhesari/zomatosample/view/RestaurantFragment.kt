@@ -16,10 +16,12 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SnapHelper
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.adapter.RestaurantAdapter
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
@@ -56,13 +58,13 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private lateinit var binding: FragmentRestaurantBinding
     private lateinit var restaurant_rv: RecyclerView
-    private val adapter: RestaurantAdapter = RestaurantAdapter()
+    private lateinit var adapter: RestaurantAdapter
     private lateinit var linearLayoutManager: LinearLayoutManager
     private var foundedRestaurant = ArrayList<Restaurant>()
-    private val snapHelper = LinearSnapHelper()
+    private lateinit var snapHelper: SnapHelper
     private val locationSettingRequestCode = 2000
 
-    private val compositeDisposable = CompositeDisposable()
+    private lateinit var compositeDisposable: CompositeDisposable
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
 
@@ -108,6 +110,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        compositeDisposable = CompositeDisposable()
+
         viewmodel = ViewModelProvider(this, factory)[RestaurantsViewModel::class.java]
 
         binding.restaurantFragment = this
@@ -117,24 +121,22 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         initViewIntraction()
-        initDataIntraction()
-
     }
 
     private fun initViewIntraction() {
         binding.restaurantProgressBar.show()
         initRecyclerView()
+        initSearchBarTextWatcher()
     }
 
     private fun initDataIntraction() {
-        getNearRestuarants()
         observeErrors()
-        searchRestaurant()
+        observeNearRestuarants()
         observeSearchResult()
-
+        observeUserLiveLocation()
     }
 
-    private fun getNearRestuarants() {
+    private fun observeNearRestuarants() {
         viewmodel.getRestaurants()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -160,12 +162,31 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     private fun initRecyclerView() {
 
+        adapter = RestaurantAdapter()
+        adapter.selectedRestaurant()
+            .subscribe {
+                val navItem = Bundle()
+                navItem.putParcelable(
+                    context!!.getString(R.string.selected_restauratn_bundle_key),
+                    it
+                )
+                Navigation.findNavController(activity!!, R.id.main_nav_host_fragment).navigate(
+                    R.id.action_restaurantFragment_to_restaurantDetailFragment,
+                    navItem
+                )
+
+            }.let {
+                compositeDisposable.add(it)
+            }
+
         restaurant_rv = binding.restaurantRecyclerView
         linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         restaurant_rv.layoutManager = linearLayoutManager
-        restaurant_rv.adapter = adapter
+
+        snapHelper = LinearSnapHelper()
         snapHelper.attachToRecyclerView(restaurant_rv)
 
+        restaurant_rv.adapter = adapter
         restaurant_rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -188,20 +209,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 }
             }
         })
-        adapter.selectedRestaurant()
-            .subscribe {
-                val navItem = Bundle()
-                navItem.putParcelable(
-                    context!!.getString(R.string.selected_restauratn_bundle_key),
-                    it
-                )
-                findNavController().navigate(
-                    R.id.action_restaurantFragment_to_restaurantDetailFragment,
-                    navItem
-                )
-            }.let {
-                compositeDisposable.add(it)
-            }
 
     }
 
@@ -210,16 +217,10 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                lastLocation?.also { lastLocation ->
-                    if (viewmodel.needToMoveCamera(it, lastLocation)) {
-                        moveCameraLocation(it, defaultMapZoom)
-                    }
-                    this.lastLocation = it
-                } ?: run {
-                    lastLocation = it
-                    moveCameraLocation(it, defaultMapZoom)
+                if (lastLocation == null)
                     viewmodel.findNearRestaurant(it)
-                }
+                lastLocation = it
+                moveCameraLocation(it, defaultMapZoom)
 
             }
             .let {
@@ -259,7 +260,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
     }
 
-    private fun searchRestaurant() {
+    private fun initSearchBarTextWatcher() {
         binding.searchEdt
             .textChanges()
             .skipInitialValue()
@@ -270,7 +271,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     viewmodel.searchRestaurant(it.toString(), foundedRestaurant)
 
                 } else {
-                    handleEmptySearchQuery()
+                    adapter.submitList(foundedRestaurant)
                 }
             }, {
 
@@ -280,9 +281,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     }
 
-    private fun handleEmptySearchQuery() {
-        adapter.submitList(foundedRestaurant)
-    }
 
     private fun showUserMarkerOnMap() {
         val customLocationComponentOptions =
@@ -357,6 +355,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
             initSymbolManager(it)
 
+            initDataIntraction()
             if (hasPermissions(permissions)) {
                 showUserLocationOnMap()
             } else {
@@ -386,9 +385,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun showUserLocationOnMap() {
-        viewmodel.initUserLocation()
-        observeUserLiveLocation()
         showUserMarkerOnMap()
+        if (lastLocation == null)
+            viewmodel.initUserLocation()
     }
 
     private fun changeFabToDefault() {
