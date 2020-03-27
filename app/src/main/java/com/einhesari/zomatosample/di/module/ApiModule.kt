@@ -13,6 +13,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @Module
 class ApiModule {
@@ -24,11 +25,13 @@ class ApiModule {
     private val CONTENT_TYPE = "application/json"
 
     @Provides
+    @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 
     @Provides
+    @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(ZOMATO_BASE_URL)
@@ -40,6 +43,7 @@ class ApiModule {
     }
 
     @Provides
+    @Singleton
     fun provideOkHttpClient(
         httpLoggingInterceptor: HttpLoggingInterceptor,
         interceptor: Interceptor
@@ -54,11 +58,13 @@ class ApiModule {
     }
 
     @Provides
+    @Singleton
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
     }
 
     @Provides
+    @Singleton
     fun provideInterceptor(context: Context): Interceptor {
         return Interceptor { chain: Interceptor.Chain ->
             var request = chain.request()
