@@ -26,6 +26,7 @@ import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.adapter.RestaurantAdapter
 import com.einhesari.zomatosample.databinding.FragmentRestaurantBinding
 import com.einhesari.zomatosample.model.Restaurant
+import com.einhesari.zomatosample.viewmodel.RestaurantFragmentState
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
 import com.einhesari.zomatosample.viewmodel.ViewModelProviderFactory
 import com.google.android.gms.common.api.ApiException
@@ -60,19 +61,21 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private lateinit var restaurant_rv: RecyclerView
     private lateinit var adapter: RestaurantAdapter
     private lateinit var linearLayoutManager: LinearLayoutManager
-    private var foundedRestaurant = ArrayList<Restaurant>()
     private lateinit var snapHelper: SnapHelper
-    private val locationSettingRequestCode = 2000
 
     private lateinit var compositeDisposable: CompositeDisposable
+
     private lateinit var mapView: MapView
     private lateinit var map: MapboxMap
-
     private lateinit var symbolManager: SymbolManager
     private val restauratnMarkerId = "restaurant"
     private var lastLocation: Location? = null
     private val PermissionRequestCode = 1000
     private val defaultMapZoom = 13.0
+    private val restaurantFocusMapZoom = 18.0
+    private lateinit var allRestaurant: List<Restaurant>
+    private lateinit var searchedRestaurant: List<Restaurant>
+    private val locationSettingRequestCode = 2000
 
     private val searchInputDelay = 300L
     private val searchInputDelayTimeUnit = TimeUnit.MILLISECONDS
@@ -81,21 +84,17 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     lateinit var factory: ViewModelProviderFactory
     private lateinit var viewmodel: RestaurantsViewModel
 
+    private val stateBundleLastLocationKey = "LOCATION_KEY"
+    private val stateBundlePositionKey = "POSITION_KEY"
+
+    private var lastVisibleRestaurant: Int = 0
 
     var permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
 
-    enum class FabViewState {
-        InternetNotConnected,
-        PermissionDenied,
-        ChangeLocationSettingsDenied,
-        FetchRestaurantsFailed,
-        Default
-    }
-
-    private var fabViewState = FabViewState.Default
+    private var state: RestaurantFragmentState = RestaurantFragmentState.Loading
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -107,8 +106,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
         compositeDisposable = CompositeDisposable()
 
@@ -116,64 +115,60 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
         binding.restaurantFragment = this
 
+        savedInstanceState?.let {
+            lastLocation = it.getParcelable(stateBundleLastLocationKey)
+            lastVisibleRestaurant = it.getInt(stateBundlePositionKey)
+        }
+
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+
 
         initViewIntraction()
     }
 
     private fun initViewIntraction() {
-        binding.restaurantProgressBar.show()
         initRecyclerView()
         initSearchBarTextWatcher()
     }
 
     private fun initDataIntraction() {
-        observeErrors()
-        observeNearRestuarants()
-        observeSearchResult()
-        observeUserLiveLocation()
-    }
+        lastLocation?.let {
+            showUserMarkerOnMap()
+            moveCameraLocation(it, defaultMapZoom)
+        } ?: also {
+            if (hasPermissions(permissions)) {
+                viewmodel.setState(RestaurantFragmentState.PermissionGranted)
+            } else {
+                viewmodel.setState(RestaurantFragmentState.NeedPermission)
+            }
+        }
 
-    private fun observeNearRestuarants() {
-        viewmodel.getRestaurants()
-            .subscribeOn(Schedulers.io())
+        viewmodel.getState()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                it.forEach {
-                    val latLng =
-                        LatLng(
-                            it.restaurantLocation.latitude.toDouble(),
-                            it.restaurantLocation.longitude.toDouble()
-                        )
-                    addMarkerOnMap(latLng, it.name)
-
-                }
-                adapter.submitList(it)
-                foundedRestaurant = it
-                changeFabToDefault()
-                binding.restaurantProgressBar.hide()
-            }
-            .let {
+                handleState(it)
+            }.let {
                 compositeDisposable.add(it)
             }
     }
 
     private fun initRecyclerView() {
-
         adapter = RestaurantAdapter()
         adapter.selectedRestaurant()
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 val navItem = Bundle()
                 navItem.putParcelable(
-                    context!!.getString(R.string.selected_restauratn_bundle_key),
+                    getString(R.string.selected_restauratn_bundle_key),
                     it
                 )
-                Navigation.findNavController(activity!!, R.id.main_nav_host_fragment).navigate(
+                findNavController().navigate(
                     R.id.action_restaurantFragment_to_restaurantDetailFragment,
                     navItem
                 )
+
 
             }.let {
                 compositeDisposable.add(it)
@@ -192,72 +187,23 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 super.onScrollStateChanged(recyclerView, newState)
                 when (newState) {
                     RecyclerView.SCROLL_STATE_IDLE -> {
-                        val restaurantPosition =
+                        lastVisibleRestaurant =
                             linearLayoutManager.findLastCompletelyVisibleItemPosition()
-                        if (restaurantPosition < 0) return
+                        if (lastVisibleRestaurant < 0) return
 
                         val restaurantLocation = Location("Restaurant Location")
                         restaurantLocation.apply {
                             latitude =
-                                foundedRestaurant[restaurantPosition].restaurantLocation.latitude.toDouble()
+                                adapter.currentList[lastVisibleRestaurant].restaurantLocation.latitude.toDouble()
                             longitude =
-                                foundedRestaurant[restaurantPosition].restaurantLocation.longitude.toDouble()
+                                adapter.currentList[lastVisibleRestaurant].restaurantLocation.longitude.toDouble()
                         }
 
-                        moveCameraLocation(restaurantLocation, null)
+                        moveCameraLocation(restaurantLocation, restaurantFocusMapZoom)
                     }
                 }
             }
         })
-
-    }
-
-    private fun observeUserLiveLocation() {
-        viewmodel.getUserLiveLocation()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                if (lastLocation == null)
-                    viewmodel.findNearRestaurant(it)
-                lastLocation = it
-                moveCameraLocation(it, defaultMapZoom)
-
-            }
-            .let {
-                compositeDisposable.add(it)
-            }
-    }
-
-    private fun observeSearchResult() {
-        viewmodel.getSearchResult()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                if (it.size > 0)
-                    adapter.submitList(it)
-                else {
-                    adapter.submitList(foundedRestaurant)
-                    Toast.makeText(context, R.string.no_restaurant_found, Toast.LENGTH_LONG).show()
-                }
-            }.let {
-                compositeDisposable.add(it)
-            }
-
-    }
-
-    private fun observeErrors() {
-        viewmodel.errors()
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                if (it is ApiException) {
-                    handleLocationExceptions(it)
-                } else {
-                    handleNetworkError(it)
-                }
-
-            }.let {
-                compositeDisposable.add(it)
-            }
     }
 
     private fun initSearchBarTextWatcher() {
@@ -266,13 +212,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .skipInitialValue()
             .debounce(searchInputDelay, searchInputDelayTimeUnit)
             .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
             .subscribe({
-                if (it.isNotBlank()) {
-                    viewmodel.searchRestaurant(it.toString(), foundedRestaurant)
-
-                } else {
-                    adapter.submitList(foundedRestaurant)
-                }
+                viewmodel.searchRestaurant(it.toString(), allRestaurant)
             }, {
 
             }).let {
@@ -304,30 +246,17 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
 
-    private fun moveCameraLocation(location: Location, zoom: Double?) {
-        zoom?.let {
-            map.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    LatLng(
-                        location.latitude,
-                        location.longitude
-                    ), zoom
-                )
+    private fun moveCameraLocation(location: Location, zoom: Double) {
+        map.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                LatLng(
+                    location.latitude,
+                    location.longitude
+                ), zoom
             )
-        } ?: run {
-            map.animateCamera(
-                CameraUpdateFactory.newLatLng(
-                    LatLng(
-                        location.latitude,
-                        location.longitude
-                    )
-                )
-            )
-        }
-
+        )
 
     }
-
 
     private fun createLocationComponentOptions() =
         LocationComponentOptions.builder(context!!)
@@ -352,19 +281,109 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     .toBitmap(),
                 false
             )
-
+            initDataIntraction()
             initSymbolManager(it)
 
-            initDataIntraction()
-            if (hasPermissions(permissions)) {
-                showUserLocationOnMap()
-            } else {
+        }
+
+    }
+
+    private fun handleState(state: RestaurantFragmentState) {
+
+        this.state = state
+        binding.restaurantProgressBar.hide()
+
+        when (state) {
+            is RestaurantFragmentState.PermissionDenied -> {
+                Toast.makeText(
+                    context,
+                    R.string.permission_denied,
+                    Toast.LENGTH_LONG
+                ).show()
+                binding.needRetry = true
+            }
+            is RestaurantFragmentState.PermissionGranted -> {
+                viewmodel.initUserLocation()
+            }
+            is RestaurantFragmentState.ChangeLocationSettingsDenied -> {
+                Toast.makeText(
+                    context,
+                    R.string.change_location_settings_canceled,
+                    Toast.LENGTH_LONG
+                ).show()
+                binding.needRetry = true
+            }
+            is RestaurantFragmentState.ChangeLocationSettingsAllowed -> {
+                viewmodel.initUserLocation()
+            }
+            is RestaurantFragmentState.FetchedRestaurantsSuccessfully -> {
+                removeAllMarkers()
+                allRestaurant = state.restaurants
+                allRestaurant.forEach {
+                    val latLng =
+                        LatLng(
+                            it.restaurantLocation.latitude.toDouble(),
+                            it.restaurantLocation.longitude.toDouble()
+                        )
+                    addMarkerOnMap(latLng, it.name)
+
+                }
+                adapter.submitList(allRestaurant)
+                restaurant_rv.smoothScrollToPosition(lastVisibleRestaurant)
+            }
+            is RestaurantFragmentState.Error -> {
+                val error = state.error
+                if (error is ApiException) {
+                    handleLocationExceptions(error)
+                } else {
+                    binding.needRetry = true
+                    handleNetworkError(error)
+                }
+            }
+            is RestaurantFragmentState.NeedPermission -> {
                 requestPermissions(
                     permissions, PermissionRequestCode
                 )
             }
-        }
+            is RestaurantFragmentState.GotUserLocationSuccessfully -> {
+                showUserMarkerOnMap()
+                lastLocation = state.location
+                lastLocation?.let {
+                    viewmodel.findNearRestaurant(it)
+                    moveCameraLocation(it, defaultMapZoom)
+                }
 
+            }
+            is RestaurantFragmentState.SearchedRestaurants -> {
+                searchedRestaurant = state.restaurants
+                removeAllMarkers()
+                searchedRestaurant.forEach {
+                    val latLng =
+                        LatLng(
+                            it.restaurantLocation.latitude.toDouble(),
+                            it.restaurantLocation.longitude.toDouble()
+                        )
+                    addMarkerOnMap(latLng, it.name)
+                }
+                adapter.submitList(searchedRestaurant)
+
+                //move camera to first restaurant location
+
+                val restaurantLocation = Location("First Restaurant Location")
+                restaurantLocation.apply {
+                    latitude =
+                        searchedRestaurant[0].restaurantLocation.latitude.toDouble()
+                    longitude =
+                        searchedRestaurant[0].restaurantLocation.longitude.toDouble()
+                }
+                moveCameraLocation(restaurantLocation, restaurantFocusMapZoom)
+            }
+
+            is RestaurantFragmentState.Loading -> {
+                binding.restaurantProgressBar.show()
+
+            }
+        }
     }
 
     private fun initSymbolManager(style: Style) {
@@ -384,47 +403,33 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         )
     }
 
-    private fun showUserLocationOnMap() {
-        showUserMarkerOnMap()
-        if (lastLocation == null)
-            viewmodel.initUserLocation()
+    private fun removeAllMarkers() {
+        symbolManager.deleteAll()
     }
 
-    private fun changeFabToDefault() {
-        binding.needRetry = false
-        fabViewState = FabViewState.Default
-    }
 
     fun fabOnClick(view: View) {
-        when (fabViewState) {
-            FabViewState.FetchRestaurantsFailed -> {
+        binding.needRetry = false
+        when (state) {
+            is RestaurantFragmentState.Error -> {
                 lastLocation?.let {
                     viewmodel.findNearRestaurant(it)
-                    binding.restaurantProgressBar.show()
                 }
             }
-            FabViewState.ChangeLocationSettingsDenied -> {
+            RestaurantFragmentState.ChangeLocationSettingsDenied -> {
                 viewmodel.initUserLocation()
-                binding.restaurantProgressBar.show()
-
             }
-            FabViewState.PermissionDenied -> {
+            RestaurantFragmentState.PermissionDenied -> {
                 requestPermissions(
                     permissions, PermissionRequestCode
                 )
-                binding.restaurantProgressBar.show()
             }
-            FabViewState.InternetNotConnected -> {
-
-            }
-            FabViewState.Default -> {
+            else -> {
                 lastLocation?.let {
                     moveCameraLocation(it, defaultMapZoom)
-
                 }
             }
         }
-        changeFabToDefault()
     }
 
     private fun handleLocationExceptions(exception: ApiException) {
@@ -443,10 +448,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
             }
             LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-
-                fabViewState = FabViewState.ChangeLocationSettingsDenied
                 binding.needRetry = true
-                binding.restaurantProgressBar.hide()
                 Toast.makeText(
                     context,
                     R.string.location_settings_change_unavailable,
@@ -458,10 +460,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun handleNetworkError(throwable: Throwable) {
-        fabViewState = FabViewState.FetchRestaurantsFailed
-        binding.needRetry = true
-        Toast.makeText(context, R.string.find_restaurants_failed, Toast.LENGTH_LONG).show()
-        binding.restaurantProgressBar.hide()
+        Toast.makeText(
+            context,
+            getString(R.string.find_restaurants_failed) + throwable.message,
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     override fun onRequestPermissionsResult(
@@ -474,13 +477,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             if (grantResults.all {
                     it == PackageManager.PERMISSION_GRANTED
                 }) {
-                showUserLocationOnMap()
-                changeFabToDefault()
+                viewmodel.setState(RestaurantFragmentState.PermissionGranted)
             } else {
-                fabViewState = FabViewState.PermissionDenied
-                binding.needRetry = true
-                Toast.makeText(context, R.string.permission_denied, Toast.LENGTH_LONG).show()
-                binding.restaurantProgressBar.hide()
+                viewmodel.setState(RestaurantFragmentState.PermissionDenied)
             }
         }
 
@@ -493,18 +492,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             locationSettingRequestCode -> {
                 when (resultCode) {
                     Activity.RESULT_OK -> {
-                        changeFabToDefault()
-                        viewmodel.initUserLocation()
+                        viewmodel.setState(RestaurantFragmentState.ChangeLocationSettingsAllowed)
                     }
 
                     Activity.RESULT_CANCELED -> {
-                        Toast.makeText(
-                            context,
-                            R.string.change_location_settings_canceled,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        fabViewState = FabViewState.ChangeLocationSettingsDenied
-                        binding.needRetry = true
+                        viewmodel.setState(RestaurantFragmentState.ChangeLocationSettingsDenied)
                     }
 
                 }
@@ -534,20 +526,24 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelable(stateBundleLastLocationKey, lastLocation)
+        outState.putInt(stateBundlePositionKey, lastVisibleRestaurant)
         super.onSaveInstanceState(outState)
         mapView.onSaveInstanceState(outState)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        compositeDisposable.dispose()
+    }
     override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()
-        compositeDisposable.dispose()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
         mapView.onLowMemory()
     }
-
 
 }

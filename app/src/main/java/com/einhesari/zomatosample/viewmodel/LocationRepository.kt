@@ -3,9 +3,15 @@ package com.einhesari.zomatosample.viewmodel
 import android.content.Context
 import android.location.Location
 import android.os.Looper
+import com.einhesari.zomatosample.model.Restaurant
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.Task
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.Observable
+import io.reactivex.Single
+import io.reactivex.internal.operators.single.SingleObserveOn
+import io.reactivex.subjects.PublishSubject
 import java.lang.Error
 import java.lang.Exception
 import javax.inject.Inject
@@ -17,8 +23,7 @@ class LocationRepository @Inject constructor(
     private val context: Context
 ) {
 
-    private val locationErrors: BehaviorRelay<Exception> = BehaviorRelay.create()
-    private val liveLocation: BehaviorRelay<Location> = BehaviorRelay.create()
+    private lateinit var liveLocation: PublishSubject<Location>
     private lateinit var locationCallback: LocationCallback
 
     init {
@@ -34,11 +39,11 @@ class LocationRepository @Inject constructor(
             startLocationUpdates()
         }
         task.addOnFailureListener {
-            locationErrors.accept(it)
+            liveLocation.onError(it)
         }
     }
 
-    fun startLocationUpdates() {
+    private fun startLocationUpdates() {
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
@@ -46,19 +51,21 @@ class LocationRepository @Inject constructor(
         )
     }
 
-    fun setupLocationChangeCallBack() {
+    private fun setupLocationChangeCallBack() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
                 for (location in locationResult.locations) {
-                    liveLocation.accept(location)
+                    liveLocation.onNext(location)
                 }
                 fusedLocationClient.removeLocationUpdates(locationCallback)
+                liveLocation.onComplete()
             }
         }
     }
 
-
-    fun getUserLiveLocation() = liveLocation.hide()
-    fun getlocationErrors() = locationErrors.hide()
+    fun getUserLiveLocation(): Observable<Location> {
+        liveLocation = PublishSubject.create()
+        return liveLocation.hide()
+    }
 }

@@ -5,8 +5,8 @@ import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.model.RestaurantSearchResponse
 import com.einhesari.zomatosample.network.ApiService
 import com.einhesari.zomatosample.viewmodel.LocationRepository
+import com.einhesari.zomatosample.viewmodel.RestaurantFragmentState
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
-import com.einhesari.zomatosample.viewmodel.FindRestaurantRepository
 import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -27,18 +27,17 @@ class RestaurantViewModelTest {
     @Mock
     lateinit var locationRepository: LocationRepository
 
-    lateinit var findRestaurantRepository: FindRestaurantRepository
 
     @Mock
     lateinit var apiService: ApiService
 
     @Mock
-    private lateinit var location: Location
+    private lateinit var mockLocation: Location
     private val latitude = 37.4219983
     private val longitude = -122.084
     private val radius = 1000
 
-    private val restaurantSearchResponse = "{\n" +
+    private val restaurantSearchResponseJson = "{\n" +
             "  \"results_found\": 9900,\n" +
             "  \"results_start\": 0,\n" +
             "  \"results_shown\": 20,\n" +
@@ -355,104 +354,138 @@ class RestaurantViewModelTest {
 
         RxAndroidPlugins.setInitMainThreadSchedulerHandler { Schedulers.trampoline() }
         RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
-        findRestaurantRepository = FindRestaurantRepository(apiService)
-        viewModel = RestaurantsViewModel(locationRepository, findRestaurantRepository)
 
-        `when`(location.longitude).thenReturn(longitude)
-        `when`(location.latitude).thenReturn(latitude)
+        viewModel = RestaurantsViewModel(locationRepository, apiService)
+
+        `when`(mockLocation.longitude).thenReturn(longitude)
+        `when`(mockLocation.latitude).thenReturn(latitude)
+
     }
 
     @Test
     fun getLiveLocationSuccessfully() {
-        `when`(locationRepository.getUserLiveLocation()).thenReturn(Observable.just(location))
-        val locationObserver = viewModel.getUserLiveLocation().test()
-
+        `when`(locationRepository.getUserLiveLocation()).thenReturn(Observable.just(mockLocation))
+        viewModel.initUserLocation()
+        val state = viewModel.getState().test()
+        val locationObserver = locationRepository.getUserLiveLocation().test()
         locationObserver.assertValue {
-            it.longitude == longitude &&
-                    it.latitude == latitude
+            it.latitude == mockLocation.latitude &&
+                    it.longitude == mockLocation.longitude
+        }
+        state.assertValue {
+            it.equals(RestaurantFragmentState.GotUserLocationSuccessfully(mockLocation))
+        }
+
+    }
+
+    @Test
+    fun getLiveLocationFailed() {
+        val exception = Exception(locationErrorDesc)
+        `when`(locationRepository.getUserLiveLocation()).thenReturn(
+            Observable.error(
+                exception
+            )
+        )
+        viewModel.initUserLocation()
+        val state = viewModel.getState().test()
+        val locationObserver = locationRepository.getUserLiveLocation().test()
+        locationObserver.assertErrorMessage(locationErrorDesc)
+        state.assertValue {
+            it.equals(RestaurantFragmentState.Error(exception))
         }
     }
 
     @Test
     fun getNearRestaurantsSuccessfully() {
         val response =
-            gson.fromJson(restaurantSearchResponse, RestaurantSearchResponse::class.java)
+            gson.fromJson(restaurantSearchResponseJson, RestaurantSearchResponse::class.java)
+
+        val allRestaurant = ArrayList<Restaurant>()
+
+        response.restaurants.forEach {
+            allRestaurant.add(it.restaurant)
+        }
         `when`(
             apiService.findRestaurant(
-                location.latitude.toString(),
-                location.longitude.toString(),
+                mockLocation.latitude.toString(),
+                mockLocation.longitude.toString(),
                 radius.toString()
             )
         ).thenReturn(Single.just(response))
-        viewModel.findNearRestaurant(location)
-        val nearRestaurantsObserver = viewModel.getRestaurants().test()
-        nearRestaurantsObserver.assertValue {
-            it.isNotEmpty() &&
-                    it.size == restaurantCount &&
-                    it.all {
-                        it.restaurantLocation.city == city
-                    }
-
+        viewModel.findNearRestaurant(mockLocation)
+        val state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
         }
     }
 
     @Test
-    fun getErrors() {
-
-        `when`(locationRepository.getlocationErrors()).thenReturn(
-            Observable.just(
-                Exception(
-                    locationErrorDesc
-                )
-            )
-        )
-
+    fun getNearRestaurantsFailed() {
+        val exception = Exception(networkErrorDesc)
         `when`(
             apiService.findRestaurant(
-                location.latitude.toString(),
-                location.longitude.toString(),
+                mockLocation.latitude.toString(),
+                mockLocation.longitude.toString(),
                 radius.toString()
             )
-        ).thenReturn(Single.error(Throwable(networkErrorDesc)))
-
-
-        viewModel.findNearRestaurant(location)
-        val errorsObserver = viewModel.errors().test()
-        errorsObserver.assertOf {
-            errorsObserver.valueCount() == 2 &&
-                    errorsObserver.values()[0].message == locationErrorDesc &&
-                    errorsObserver.values()[1].message == networkErrorDesc
+        ).thenReturn(Single.error(exception))
+        viewModel.findNearRestaurant(mockLocation)
+        val state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.Error(exception))
         }
     }
 
     @Test
     fun searchRestaurants() {
         val response =
-            gson.fromJson(restaurantSearchResponse, RestaurantSearchResponse::class.java)
+            gson.fromJson(restaurantSearchResponseJson, RestaurantSearchResponse::class.java)
+
+        val allRestaurant = ArrayList<Restaurant>()
+        response.restaurants.forEach {
+            allRestaurant.add(it.restaurant)
+        }
+
+        val nameQueryFoundedRestaurants = arrayListOf<Restaurant>(allRestaurant[1])
+        val cuisineQueryFoundedRestaurants = arrayListOf<Restaurant>(allRestaurant[0])
+        arrayListOf<Restaurant>(gson.fromJson(restaurantSearchResponseJson, Restaurant::class.java))
         `when`(
             apiService.findRestaurant(
-                location.latitude.toString(),
-                location.longitude.toString(),
+                mockLocation.latitude.toString(),
+                mockLocation.longitude.toString(),
                 radius.toString()
             )
         ).thenReturn(Single.just(response))
-        viewModel.findNearRestaurant(location)
-        viewModel.getRestaurants().subscribe {
-            foundedRestaurants = it
-        }
-        val nameSearchQuery = "t b"
+        viewModel.findNearRestaurant(mockLocation)
+
+        val nameSearchQuery = "r I"
         val cuisineSearchQuery = "r, f"
-        viewModel.searchRestaurant(nameSearchQuery, foundedRestaurants)
-        val nameSearchResult = viewModel.getSearchResult().test()
-        nameSearchResult.assertValue {
-            it.size == 1 &&
-                    it[0].name == "In-N-Out Burger"
+        val blankQuery = ""
+        val nothingFoundQuery = "abcd"
+
+        viewModel.searchRestaurant(nameSearchQuery, allRestaurant)
+        var state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.SearchedRestaurants(nameQueryFoundedRestaurants))
         }
-        viewModel.searchRestaurant(cuisineSearchQuery, foundedRestaurants)
-        val cuisineSearchResult = viewModel.getSearchResult().test()
-        cuisineSearchResult.assertValue {
-            it.size == 1 &&
-                    it[0].cuisines == "Burger, Fast Food"
+
+        viewModel.searchRestaurant(cuisineSearchQuery, allRestaurant)
+        state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.SearchedRestaurants(cuisineQueryFoundedRestaurants))
         }
+
+        viewModel.searchRestaurant(nothingFoundQuery, allRestaurant)
+        state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+        }
+
+        viewModel.searchRestaurant(blankQuery, allRestaurant)
+        state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+        }
+
     }
 }
