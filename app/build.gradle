@@ -65,8 +65,8 @@ def leakcanary_version = "2.1"
 def glide_version = "4.11.0"
 def dagger_version = "2.22"
 def mapbox_version = "9.0.0"
-def play_services_version = "17.0.0"
 def mapbox_annotation_plugin_version = "0.8.0"
+def play_services_version = "17.0.0"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])

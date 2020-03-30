@@ -5,6 +5,11 @@
     <dimen name="restaurant_item_image">100dp</dimen>
     <dimen name="ratingbar_height">30dp</dimen>
 
+    <!-- Restaurant detail -->
+    <dimen name="restaurant_detail_image">200dp</dimen>
+    <dimen name="restaurant_detail_image_ring">205dp</dimen>
+    <dimen name="actionbar_icons_size">25dp</dimen>
+
     <!-- Spacing -->
     <dimen name="margin_xsmall">4dp</dimen>
     <dimen name="margin_small">8dp</dimen>

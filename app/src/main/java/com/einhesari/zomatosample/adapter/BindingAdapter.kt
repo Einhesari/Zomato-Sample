@@ -20,7 +20,6 @@ class BindingAdapter {
                 ratingBar.rating = priceRange.toFloat()
             } ?: run {
                 ratingBar.rating = 0.0F
-
             }
         }
 
@@ -34,11 +33,11 @@ class BindingAdapter {
                     )
                     .load(imageUrl)
                     .placeholder(restaurantImagePlaceHolder)
+                    .error(restaurantImagePlaceHolder)
                     .into(view)
-            } ?: run {
+            } ?: also {
                 view.setImageResource(restaurantImagePlaceHolder)
             }
-
         }
     }
 
