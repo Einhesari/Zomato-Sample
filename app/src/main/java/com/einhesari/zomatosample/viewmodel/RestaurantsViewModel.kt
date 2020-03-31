@@ -70,14 +70,14 @@ class RestaurantsViewModel @Inject constructor(
             }
     }
 
-    fun searchRestaurant(query: String, restaurants: List<Restaurant>) {
+    fun searchRestaurant(query: String) {
         if (query.isBlank()) {
             state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
             return
         }
         val queryWithoutSpace = query.replace("\\s".toRegex(), "")
         val result = ArrayList<Restaurant>()
-        restaurants.forEach {
+        inRangeRestaurant.forEach {
             val restaurantNameWithoutSpace = it.name.replace("\\s".toRegex(), "")
             val restaurantCuisineWithoutSpace = it.cuisines.replace("\\s".toRegex(), "")
             if (restaurantNameWithoutSpace.contains(queryWithoutSpace, true)) {
@@ -126,10 +126,12 @@ sealed class RestaurantFragmentState {
     object ChangeLocationSettingsAllowed : RestaurantFragmentState()
     object Loading : RestaurantFragmentState()
     data class GotUserLocationSuccessfully(val location: Location) : RestaurantFragmentState()
-    data class FetchedRestaurantsSuccessfully(val restaurants: List<Restaurant>) :
+    data class FetchedRestaurantsSuccessfully(val restaurants: ArrayList<Restaurant>) :
         RestaurantFragmentState()
 
     object NoNearRestuarants : RestaurantFragmentState()
-    data class SearchedRestaurants(val restaurants: List<Restaurant>) : RestaurantFragmentState()
+    data class SearchedRestaurants(val restaurants: ArrayList<Restaurant>) :
+        RestaurantFragmentState()
+
     data class Error(val error: Throwable) : RestaurantFragmentState()
 }

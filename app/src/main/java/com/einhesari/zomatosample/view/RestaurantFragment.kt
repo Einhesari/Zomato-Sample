@@ -6,9 +6,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
@@ -74,8 +76,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     private val PermissionRequestCode = 1000
     private val defaultMapZoom = 13.0
     private val restaurantFocusMapZoom = 18.0
-    private lateinit var allRestaurant: List<Restaurant>
-    private lateinit var searchedRestaurant: List<Restaurant>
+    private var allRestaurant = ArrayList<Restaurant>()
+    private var searchedRestaurant = ArrayList<Restaurant>()
     private val locationSettingRequestCode = 2000
 
     private val searchInputDelay = 300L
@@ -132,6 +134,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         initRecyclerView()
         initSearchBarTextWatcher()
         (activity as AppCompatActivity).supportActionBar?.hide()
+
+        //close keyboard on orientation change
+        activity!!.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
     }
 
     private fun initDataIntraction() {
@@ -215,8 +220,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({
-                if (allRestaurant.size > 0)
-                    viewmodel.searchRestaurant(it.toString(), allRestaurant)
+                viewmodel.searchRestaurant(it.toString())
             }, {
             }).let {
                 compositeDisposable.add(it)
@@ -343,6 +347,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             }
             is RestaurantFragmentState.NoNearRestuarants -> {
                 Toast.makeText(context, R.string.no_near_restaurant, Toast.LENGTH_LONG).show()
+                binding.needRetry = true
             }
             is RestaurantFragmentState.Error -> {
                 val error = state.error
@@ -420,13 +425,20 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     viewmodel.findNearRestaurant(it)
                 }
             }
-            RestaurantFragmentState.ChangeLocationSettingsDenied -> {
+            is RestaurantFragmentState.ChangeLocationSettingsDenied -> {
                 viewmodel.initUserLocation()
             }
-            RestaurantFragmentState.PermissionDenied -> {
+            is RestaurantFragmentState.PermissionDenied -> {
                 requestPermissions(
                     permissions, PermissionRequestCode
                 )
+            }
+            is RestaurantFragmentState.NoNearRestuarants -> {
+                if (hasPermissions(permissions)) {
+                    viewmodel.setState(RestaurantFragmentState.PermissionGranted)
+                } else {
+                    viewmodel.setState(RestaurantFragmentState.NeedPermission)
+                }
             }
             else -> {
                 lastLocation?.let {

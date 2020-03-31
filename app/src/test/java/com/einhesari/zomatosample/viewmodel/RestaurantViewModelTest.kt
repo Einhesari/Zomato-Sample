@@ -490,25 +490,25 @@ class RestaurantViewModelTest {
         val blankQuery = ""
         val nothingFoundQuery = "abcd"
 
-        viewModel.searchRestaurant(nameSearchQuery, allRestaurant)
+        viewModel.searchRestaurant(nameSearchQuery)
         var state = viewModel.getState().test()
         state.assertValue {
             it.equals(RestaurantFragmentState.SearchedRestaurants(nameQueryFoundedRestaurants))
         }
 
-        viewModel.searchRestaurant(cuisineSearchQuery, allRestaurant)
+        viewModel.searchRestaurant(cuisineSearchQuery)
         state = viewModel.getState().test()
         state.assertValue {
             it.equals(RestaurantFragmentState.SearchedRestaurants(cuisineQueryFoundedRestaurants))
         }
 
-        viewModel.searchRestaurant(nothingFoundQuery, allRestaurant)
+        viewModel.searchRestaurant(nothingFoundQuery)
         state = viewModel.getState().test()
         state.assertValue {
             it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
         }
 
-        viewModel.searchRestaurant(blankQuery, allRestaurant)
+        viewModel.searchRestaurant(blankQuery)
         state = viewModel.getState().test()
         state.assertValue {
             it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
