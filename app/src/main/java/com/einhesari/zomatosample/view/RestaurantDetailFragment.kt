@@ -63,7 +63,12 @@ class RestaurantDetailFragment : Fragment() {
         selectedRestaurant?.let {
             val navigateIntent = Intent(Intent.ACTION_VIEW)
             navigateIntent.data =
-                Uri.parse("geo:${it.restaurantLocation.latitude} ,${it.restaurantLocation.longitude} ")
+                Uri.parse(
+                    getString(R.string.google_map_url).format(
+                        it.restaurantLocation.latitude,
+                        it.restaurantLocation.longitude
+                    )
+                )
             startActivity(navigateIntent)
         }
     }

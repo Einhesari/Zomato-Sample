@@ -42,10 +42,7 @@ import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
-import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
-import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.maps.*
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
 import com.mapbox.mapboxsdk.style.layers.Property.*
@@ -290,7 +287,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             initSymbolManager(it)
 
         }
-
     }
 
     private fun handleState(state: RestaurantFragmentState) {
@@ -299,6 +295,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         binding.restaurantProgressBar.hide()
 
         when (state) {
+            is RestaurantFragmentState.NeedPermission -> {
+                requestPermissions(
+                    permissions, PermissionRequestCode
+                )
+            }
             is RestaurantFragmentState.PermissionDenied -> {
                 Toast.makeText(
                     context,
@@ -358,11 +359,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                     handleNetworkError(error)
                 }
             }
-            is RestaurantFragmentState.NeedPermission -> {
-                requestPermissions(
-                    permissions, PermissionRequestCode
-                )
-            }
+
             is RestaurantFragmentState.SearchedRestaurants -> {
                 searchedRestaurant = state.restaurants
                 removeAllMarkers()
@@ -408,7 +405,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 .withIconImage(restauratnMarkerId)
                 .withIconSize(2.0f)
                 .withTextField(text)
-                .withTextOffset(arrayOf(0f, -1.7f))
+                .withTextJustify(TEXT_JUSTIFY_AUTO)
+                .withTextOffset(arrayOf(0f, -1.8f))
         )
     }
 
@@ -551,12 +549,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     override fun onDestroyView() {
         super.onDestroyView()
         compositeDisposable.dispose()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         mapView.onDestroy()
     }
+
 
     override fun onLowMemory() {
         super.onLowMemory()

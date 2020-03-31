@@ -147,7 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_large"
                 android:onClick="@{(view) -> host.onCallPressed(view)}"
-                android:padding="@dimen/padding_standard"
+                android:padding="@dimen/padding_large"
                 android:text="@string/call_btn_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/phone_number_tv" />

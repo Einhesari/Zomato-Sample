@@ -20,4 +20,6 @@
     <string name="call_btn_text">Call</string>
     <string name="direction_btn_text">Direction</string>
 
+    <string name="google_map_url">http://maps.google.com/maps?daddr=%s1,%s2</string>
+
 </resources>

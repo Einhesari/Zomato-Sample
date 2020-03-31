@@ -19,7 +19,6 @@ class RestaurantsViewModel @Inject constructor(
     private val compositeDisposable = CompositeDisposable()
     private var allRestaurant = ArrayList<Restaurant>()
     private var inRangeRestaurant = ArrayList<Restaurant>()
-    private val searchRadius = "10000" // in meters
 
     fun getState() = state.hide()
     fun setState(state: RestaurantFragmentState) {
