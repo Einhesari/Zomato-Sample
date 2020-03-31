@@ -214,9 +214,10 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
             .subscribe({
-                viewmodel.searchRestaurant(it.toString(), allRestaurant)
+                if (allRestaurant.size > 0)
+                    viewmodel.searchRestaurant(it.toString(), allRestaurant)
             }, {
-
+                viewmodel.searchRestaurant(it.toString(), allRestaurant)
             }).let {
                 compositeDisposable.add(it)
             }
