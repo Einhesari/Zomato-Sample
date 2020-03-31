@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -124,13 +125,13 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-
         initViewIntraction()
     }
 
     private fun initViewIntraction() {
         initRecyclerView()
         initSearchBarTextWatcher()
+        (activity as AppCompatActivity).supportActionBar?.hide()
     }
 
     private fun initDataIntraction() {
@@ -217,7 +218,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 if (allRestaurant.size > 0)
                     viewmodel.searchRestaurant(it.toString(), allRestaurant)
             }, {
-                viewmodel.searchRestaurant(it.toString(), allRestaurant)
             }).let {
                 compositeDisposable.add(it)
             }

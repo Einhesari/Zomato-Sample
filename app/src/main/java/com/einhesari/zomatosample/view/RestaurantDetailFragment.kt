@@ -2,13 +2,11 @@ package com.einhesari.zomatosample.view
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.databinding.FragmentRestaurantDetailBinding
@@ -32,6 +30,11 @@ class RestaurantDetailFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        (activity as AppCompatActivity).supportActionBar?.show()
+        (activity as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        setHasOptionsMenu(true)
+
         arguments?.let {
             selectedRestaurant =
                 it.getParcelable(getString(R.string.selected_restauratn_bundle_key))
@@ -39,17 +42,16 @@ class RestaurantDetailFragment : Fragment() {
             binding.addressTv.isSelected = true
             binding.restaurantNameTv.isSelected = true
             binding.restaurantCuisineTv.isSelected = true
+            (activity as AppCompatActivity).supportActionBar?.title = selectedRestaurant?.name
+
         } ?: also {
             Toast.makeText(context, R.string.sth_went_wrong, Toast.LENGTH_LONG).show()
         }
         binding.host = this
     }
 
-    fun onBackPressed(view: View) {
-        findNavController().navigateUp()
-    }
 
-    fun onSharePressed(view: View) {
+    private fun onSharePressed() {
         selectedRestaurant?.let {
             val shareIntent = Intent(Intent.ACTION_SEND)
             shareIntent.type = intentType
@@ -57,5 +59,17 @@ class RestaurantDetailFragment : Fragment() {
             shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
             startActivity(shareIntent)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_share, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        return if (id == R.id.action_share) {
+            onSharePressed()
+            true
+        } else super.onOptionsItemSelected(item)
     }
 }

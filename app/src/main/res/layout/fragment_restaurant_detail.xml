@@ -24,36 +24,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <RelativeLayout
-                android:id="@+id/actionbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/colorPrimary"
-                app:layout_constraintStart_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:layout_width="@dimen/actionbar_icons_size"
-                    android:layout_height="@dimen/actionbar_icons_size"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="@dimen/margin_small"
-                    android:background="@drawable/ic_back"
-                    android:onClick="@{(view)-> host.onBackPressed(view)}" />
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:layout_width="@dimen/actionbar_icons_size"
-                    android:layout_height="@dimen/actionbar_icons_size"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:background="@drawable/ic_share"
-                    android:onClick="@{(view)-> host.onSharePressed(view)}" />
-
-            </RelativeLayout>
-
-
             <View
                 android:id="@+id/characterDetailAvatarCenterIndicator"
                 android:layout_width="wrap_content"
@@ -93,7 +63,7 @@
                 android:imageUrl="@{restaurant.featuredImage}"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/actionbar" />
+                app:layout_constraintTop_toTopOf="parent" />
 
 
             <com.google.android.material.textview.MaterialTextView
@@ -101,7 +71,9 @@
                 style="@style/TextAppearance.MaterialComponents.Headline5"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_large"
                 android:layout_marginTop="@dimen/margin_large"
+                android:layout_marginEnd="@dimen/margin_large"
                 android:ellipsize="marquee"
                 android:gravity="center"
                 android:singleLine="true"
@@ -173,7 +145,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/margin_standard"
+                android:layout_marginEnd="@dimen/margin_large"
                 android:text="Call"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/phone_number_tv" />
@@ -202,7 +174,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="@dimen/margin_standard"
+                android:layout_marginEnd="@dimen/margin_large"
                 android:text="Navigate To"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/address_tv" />
