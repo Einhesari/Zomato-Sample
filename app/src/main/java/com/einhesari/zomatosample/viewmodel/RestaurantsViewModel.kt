@@ -3,24 +3,23 @@ package com.einhesari.zomatosample.viewmodel
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import com.einhesari.zomatosample.model.Restaurant
-import com.einhesari.zomatosample.network.ApiService
+import com.einhesari.zomatosample.state.Const.SEARCH_RADIUS
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import java.lang.reflect.Array
 import javax.inject.Inject
 
 class RestaurantsViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
-    private val apiService: ApiService
+    private val remoteApiRepository: RemoteApiRepository
 ) :
     ViewModel() {
     private val state: BehaviorRelay<RestaurantFragmentState> = BehaviorRelay.create()
     private val compositeDisposable = CompositeDisposable()
     private var allRestaurant = ArrayList<Restaurant>()
-    private val searchRadius = "1000" // in meters
-
+    private var inRangeRestaurant = ArrayList<Restaurant>()
+    private val searchRadius = "10000" // in meters
 
     fun getState() = state.hide()
     fun setState(state: RestaurantFragmentState) {
@@ -45,18 +44,25 @@ class RestaurantsViewModel @Inject constructor(
 
     fun findNearRestaurant(location: Location) {
         state.accept(RestaurantFragmentState.Loading)
-        apiService.findRestaurant(
-                location.latitude.toString(),
-                location.longitude.toString(),
-                searchRadius
-            )
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+        remoteApiRepository.findRestaurant(
+            location
+        )
             .subscribe({
                 it.restaurants.forEach {
                     allRestaurant.add(it.restaurant)
                 }
-                state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+                inRangeRestaurant = inRangeRestaurants(location, allRestaurant)
+                if (inRangeRestaurant.size > 0) {
+                    state.accept(
+                        RestaurantFragmentState.FetchedRestaurantsSuccessfully(
+                            inRangeRestaurant
+                        )
+                    )
+                } else {
+                    state.accept(
+                        RestaurantFragmentState.NoNearRestuarants
+                    )
+                }
             }, {
                 state.accept(RestaurantFragmentState.Error(it))
             }).let {
@@ -66,7 +72,7 @@ class RestaurantsViewModel @Inject constructor(
 
     fun searchRestaurant(query: String, restaurants: List<Restaurant>) {
         if (query.isBlank()) {
-            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
             return
         }
         val queryWithoutSpace = query.replace("\\s".toRegex(), "")
@@ -83,8 +89,26 @@ class RestaurantsViewModel @Inject constructor(
         if (result.size > 0) {
             state.accept(RestaurantFragmentState.SearchedRestaurants(result))
         } else {
-            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
         }
+    }
+
+    private fun inRangeRestaurants(
+        location: Location,
+        allRestaurants: ArrayList<Restaurant>
+    ): ArrayList<Restaurant> {
+        val nearRestaurants = ArrayList<Restaurant>()
+        allRestaurants.forEach {
+            val restaurantLocation = Location("Restaurant Location")
+            restaurantLocation.apply {
+                latitude = it.restaurantLocation.latitude.toDouble()
+                longitude = it.restaurantLocation.longitude.toDouble()
+            }
+            if (location.distanceTo(restaurantLocation) < SEARCH_RADIUS) {
+                nearRestaurants.add(it)
+            }
+        }
+        return nearRestaurants
     }
 
     override fun onCleared() {
@@ -105,6 +129,7 @@ sealed class RestaurantFragmentState {
     data class FetchedRestaurantsSuccessfully(val restaurants: List<Restaurant>) :
         RestaurantFragmentState()
 
+    object NoNearRestuarants : RestaurantFragmentState()
     data class SearchedRestaurants(val restaurants: List<Restaurant>) : RestaurantFragmentState()
     data class Error(val error: Throwable) : RestaurantFragmentState()
 }

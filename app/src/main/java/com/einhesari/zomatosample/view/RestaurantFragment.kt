@@ -316,6 +316,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             is RestaurantFragmentState.ChangeLocationSettingsAllowed -> {
                 viewmodel.initUserLocation()
             }
+            is RestaurantFragmentState.GotUserLocationSuccessfully -> {
+                showUserMarkerOnMap()
+                lastLocation = state.location
+                lastLocation?.let {
+                    viewmodel.findNearRestaurant(it)
+                    moveCameraLocation(it, defaultMapZoom)
+                }
+
+            }
             is RestaurantFragmentState.FetchedRestaurantsSuccessfully -> {
                 removeAllMarkers()
                 allRestaurant = state.restaurants
@@ -331,6 +340,9 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 adapter.submitList(allRestaurant)
                 restaurant_rv.smoothScrollToPosition(lastVisibleRestaurant)
             }
+            is RestaurantFragmentState.NoNearRestuarants -> {
+                Toast.makeText(context, R.string.no_near_restaurant, Toast.LENGTH_LONG).show()
+            }
             is RestaurantFragmentState.Error -> {
                 val error = state.error
                 if (error is ApiException) {
@@ -344,15 +356,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 requestPermissions(
                     permissions, PermissionRequestCode
                 )
-            }
-            is RestaurantFragmentState.GotUserLocationSuccessfully -> {
-                showUserMarkerOnMap()
-                lastLocation = state.location
-                lastLocation?.let {
-                    viewmodel.findNearRestaurant(it)
-                    moveCameraLocation(it, defaultMapZoom)
-                }
-
             }
             is RestaurantFragmentState.SearchedRestaurants -> {
                 searchedRestaurant = state.restaurants
@@ -536,6 +539,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
         super.onDestroyView()
         compositeDisposable.dispose()
     }
+
     override fun onDestroy() {
         super.onDestroy()
         mapView.onDestroy()

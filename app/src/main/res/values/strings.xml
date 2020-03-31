@@ -10,7 +10,6 @@
     <string name="search_hint">Restaurant name, cuisine,…</string>
     <string name="no_restaurant_found">No restaurant found!</string>
     <string name="selected_restauratn_bundle_key">selected_restaurant</string>
-    <string name="sth_went_wrong">something went wrong, please try again later</string>
-    <string name="restaurant_share_desc">Checkout $s in Zomato!</string>
-
+    <string name="sth_went_wrong">Something went wrong, please try again later</string>
+    <string name="no_near_restaurant">Sorry, there is no restauratns nearby :( </string>
 </resources>

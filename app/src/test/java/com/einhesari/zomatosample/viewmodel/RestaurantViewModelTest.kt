@@ -3,8 +3,8 @@ package com.einhesari.zomatosample
 import android.location.Location
 import com.einhesari.zomatosample.model.Restaurant
 import com.einhesari.zomatosample.model.RestaurantSearchResponse
-import com.einhesari.zomatosample.network.ApiService
 import com.einhesari.zomatosample.viewmodel.LocationRepository
+import com.einhesari.zomatosample.viewmodel.RemoteApiRepository
 import com.einhesari.zomatosample.viewmodel.RestaurantFragmentState
 import com.einhesari.zomatosample.viewmodel.RestaurantsViewModel
 import com.google.gson.Gson
@@ -15,11 +15,11 @@ import io.reactivex.plugins.RxJavaPlugins
 import io.reactivex.schedulers.Schedulers
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import java.lang.Exception
-
 
 class RestaurantViewModelTest {
     lateinit var viewModel: RestaurantsViewModel
@@ -27,15 +27,21 @@ class RestaurantViewModelTest {
     @Mock
     lateinit var locationRepository: LocationRepository
 
+    @Mock
+    lateinit var remoteApiRepository: RemoteApiRepository
 
     @Mock
-    lateinit var apiService: ApiService
+    lateinit var noNearRestaurantLocation: Location
 
     @Mock
     private lateinit var mockLocation: Location
+
     private val latitude = 37.4219983
     private val longitude = -122.084
-    private val radius = 1000
+
+    private val noNearRestaurantlatitude = 35.7337
+    private val noNearRestaurantlongitude = 51.345
+    private val noNearRestaurantDistance = 50000f
 
     private val restaurantSearchResponseJson = "{\n" +
             "  \"results_found\": 9900,\n" +
@@ -346,7 +352,6 @@ class RestaurantViewModelTest {
     private val gson = Gson()
     private val networkErrorDesc = "Some netwrok error"
     private val locationErrorDesc = "Some location api error"
-    private lateinit var foundedRestaurants: ArrayList<Restaurant>
 
     @Before
     fun setUp() {
@@ -355,11 +360,17 @@ class RestaurantViewModelTest {
         RxAndroidPlugins.setInitMainThreadSchedulerHandler { Schedulers.trampoline() }
         RxJavaPlugins.setIoSchedulerHandler { Schedulers.trampoline() }
 
-        viewModel = RestaurantsViewModel(locationRepository, apiService)
+        viewModel = RestaurantsViewModel(locationRepository, remoteApiRepository)
 
         `when`(mockLocation.longitude).thenReturn(longitude)
         `when`(mockLocation.latitude).thenReturn(latitude)
 
+        `when`(noNearRestaurantLocation.longitude).thenReturn(noNearRestaurantlatitude)
+        `when`(noNearRestaurantLocation.latitude).thenReturn(noNearRestaurantlongitude)
+
+        `when`(noNearRestaurantLocation.distanceTo(ArgumentMatchers.any())).thenReturn(
+            noNearRestaurantDistance
+        )
     }
 
     @Test
@@ -406,10 +417,8 @@ class RestaurantViewModelTest {
             allRestaurant.add(it.restaurant)
         }
         `when`(
-            apiService.findRestaurant(
-                mockLocation.latitude.toString(),
-                mockLocation.longitude.toString(),
-                radius.toString()
+            remoteApiRepository.findRestaurant(
+                mockLocation
             )
         ).thenReturn(Single.just(response))
         viewModel.findNearRestaurant(mockLocation)
@@ -420,19 +429,39 @@ class RestaurantViewModelTest {
     }
 
     @Test
-    fun getNearRestaurantsFailed() {
+    fun getNearRestaurantsFailedNetworkIssue() {
         val exception = Exception(networkErrorDesc)
         `when`(
-            apiService.findRestaurant(
-                mockLocation.latitude.toString(),
-                mockLocation.longitude.toString(),
-                radius.toString()
+            remoteApiRepository.findRestaurant(
+                mockLocation
             )
         ).thenReturn(Single.error(exception))
         viewModel.findNearRestaurant(mockLocation)
         val state = viewModel.getState().test()
         state.assertValue {
             it.equals(RestaurantFragmentState.Error(exception))
+        }
+    }
+
+    @Test
+    fun getNearRestaurantsFailedNoNearRestaurant() {
+        val response =
+            gson.fromJson(restaurantSearchResponseJson, RestaurantSearchResponse::class.java)
+
+        val allRestaurant = ArrayList<Restaurant>()
+
+        response.restaurants.forEach {
+            allRestaurant.add(it.restaurant)
+        }
+        `when`(
+            remoteApiRepository.findRestaurant(
+                noNearRestaurantLocation
+            )
+        ).thenReturn(Single.just(response))
+        viewModel.findNearRestaurant(noNearRestaurantLocation)
+        val state = viewModel.getState().test()
+        state.assertValue {
+            it.equals(RestaurantFragmentState.NoNearRestuarants)
         }
     }
 
@@ -450,10 +479,8 @@ class RestaurantViewModelTest {
         val cuisineQueryFoundedRestaurants = arrayListOf<Restaurant>(allRestaurant[0])
         arrayListOf<Restaurant>(gson.fromJson(restaurantSearchResponseJson, Restaurant::class.java))
         `when`(
-            apiService.findRestaurant(
-                mockLocation.latitude.toString(),
-                mockLocation.longitude.toString(),
-                radius.toString()
+            remoteApiRepository.findRestaurant(
+                mockLocation
             )
         ).thenReturn(Single.just(response))
         viewModel.findNearRestaurant(mockLocation)

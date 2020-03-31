@@ -39,7 +39,9 @@ android {
     androidExtensions {
         experimental = true
     }
-
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 def appcompat_version = '1.1.0'
@@ -67,6 +69,7 @@ def dagger_version = "2.22"
 def mapbox_version = "9.0.0"
 def mapbox_annotation_plugin_version = "0.8.0"
 def play_services_version = "17.0.0"
+def robolectric_version = "3.8"
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
