@@ -146,19 +146,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_large"
-                android:text="Call"
+                android:onClick="@{(view) -> host.onCallPressed(view)}"
+                android:padding="@dimen/padding_standard"
+                android:text="@string/call_btn_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/phone_number_tv" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/phone_number_tv"
                 style="@style/TextAppearance.MaterialComponents.Body1"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/margin_standard"
                 android:drawablePadding="@dimen/padding_small"
                 android:ellipsize="marquee"
-                android:padding="@dimen/padding_standard"
+                android:padding="@dimen/padding_large"
                 android:singleLine="true"
                 android:text="@{restaurant.phoneNumbers}"
                 app:drawableStartCompat="@drawable/ic_phone_black_24dp"
@@ -175,7 +177,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="@dimen/margin_large"
-                android:text="Navigate To"
+                android:onClick="@{(view) -> host.onNavigatePressed(view)}"
+                android:padding="@dimen/padding_standard"
+                android:text="@string/direction_btn_text"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/address_tv" />
 

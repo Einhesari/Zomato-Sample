@@ -1,6 +1,7 @@
 package com.einhesari.zomatosample.view
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -50,6 +51,22 @@ class RestaurantDetailFragment : Fragment() {
         binding.host = this
     }
 
+    fun onCallPressed(view: View) {
+        selectedRestaurant?.let {
+            val callIntent = Intent(Intent.ACTION_DIAL)
+            callIntent.data = Uri.parse("tel:${it.phoneNumbers}")
+            startActivity(callIntent)
+        }
+    }
+
+    fun onNavigatePressed(view: View) {
+        selectedRestaurant?.let {
+            val navigateIntent = Intent(Intent.ACTION_VIEW)
+            navigateIntent.data =
+                Uri.parse("geo:${it.restaurantLocation.latitude} ,${it.restaurantLocation.longitude} ")
+            startActivity(navigateIntent)
+        }
+    }
 
     private fun onSharePressed() {
         selectedRestaurant?.let {
