@@ -71,7 +71,12 @@ class RestaurantsViewModel @Inject constructor(
 
     fun searchRestaurant(query: String) {
         if (query.isBlank()) {
-            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
+            if (inRangeRestaurant.size > 0)
+                state.accept(
+                    RestaurantFragmentState.FetchedRestaurantsSuccessfully(
+                        inRangeRestaurant
+                    )
+                )
             return
         }
         val queryWithoutSpace = query.replace("\\s".toRegex(), "")
