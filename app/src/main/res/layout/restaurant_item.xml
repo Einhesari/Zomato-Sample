@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <data>
+
+        <variable
+            name="restaurant"
+            type="com.einhesari.zomatosample.model.Restaurant" />
+    </data>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_card">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/restaurant_photo_img"
+            android:layout_width="@dimen/restaurant_item_image"
+            android:layout_height="@dimen/restaurant_item_image"
+            android:layout_margin="@dimen/margin_medium"
+            android:imageUrl="@{restaurant.featuredImage}" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/restaurant_name_tv"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_standard"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_toEndOf="@+id/restaurant_photo_img"
+            android:ellipsize="marquee"
+            android:paddingEnd="@dimen/margin_small"
+            android:singleLine="true"
+            android:text="@{restaurant.name}"
+            tools:text="Restaurant Name" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/cuisines_tv"
+            style="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/restaurant_name_tv"
+            android:layout_marginStart="@dimen/margin_standard"
+            android:layout_toEndOf="@+id/restaurant_photo_img"
+            android:ellipsize="marquee"
+            android:paddingEnd="@dimen/margin_small"
+            android:singleLine="true"
+            android:text="@{restaurant.cuisines}"
+            tools:text="Cuisines" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/rating_text_tv"
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cuisines_tv"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_toEndOf="@+id/user_rating_rtbar"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:text="@{`(` + restaurant.userRating.ratingText+`)`}"
+            tools:text="Good" />
+
+        <androidx.appcompat.widget.AppCompatRatingBar
+            android:id="@+id/user_rating_rtbar"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ratingbar_height"
+            android:layout_below="@+id/cuisines_tv"
+            android:layout_marginStart="@dimen/margin_standard"
+            android:layout_toEndOf="@+id/restaurant_photo_img"
+            android:isIndicator="true"
+            android:progressDrawable="@drawable/restaurant_user_rating_custom_ratingbar"
+            android:rating="@{restaurant.userRating.aggregateRating}"
+            tools:rating="3" />
+
+        <androidx.appcompat.widget.AppCompatRatingBar
+            android:id="@+id/price_rtbar"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ratingbar_height"
+            android:layout_below="@+id/user_rating_rtbar"
+            android:layout_marginStart="@dimen/margin_standard"
+            android:layout_toEndOf="@+id/restaurant_photo_img"
+            android:isIndicator="true"
+            android:priceRange="@{restaurant.priceRange}"
+            android:progressDrawable="@drawable/restaurant_price_custom_ratingbar"
+            tools:rating="5" />
+    </RelativeLayout>
+</layout>

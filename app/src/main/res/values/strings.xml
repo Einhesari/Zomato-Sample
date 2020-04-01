@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">Zomato Sample</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZWluaGVzYXJpIiwiYSI6ImNrN3g2dGY5djA4Y2MzaHA5eDA3dTVpYjkifQ.4WbCd9M1BCnIMzYuagbuLA</string>
+    <string name="zomato_api_key">fb8e9264e847fc28a44187844fc9e667</string>
+
+    <!-- Toasts. -->
+    <string name="change_location_settings_canceled">We need to access your location to find your nearest restaurants</string>
+    <string name="location_settings_change_unavailable">error occurred , please try again later</string>
+    <string name="find_restaurants_failed">Failed to find your nearest restaurants : </string>
+    <string name="permission_denied">In order to proceed we need your location</string>
+    <string name="search_hint">Restaurant name, cuisine,…</string>
+    <string name="sth_went_wrong">Something went wrong, please try again later</string>
+    <string name="no_near_restaurant">There is no restauratns nearby, you can change your location and try again later </string>
+
+    <string name="selected_restauratn_bundle_key">selected_restaurant</string>
+
+    <string name="share_menu_item">Share</string>
+
+    <string name="call_btn_text">Call</string>
+    <string name="direction_btn_text">Direction</string>
+
+    <string name="google_map_url">http://maps.google.com/maps?daddr=%s1,%s2</string>
+
 </resources>

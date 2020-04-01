@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="needRetry"
+            type="java.lang.Boolean" />
+
+        <variable
+            name="restaurantFragment"
+            type="com.einhesari.zomatosample.view.RestaurantFragment" />
+    </data>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".view.RestaurantFragment">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/restaurantRecyclerView"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="@dimen/margin_standard"
+            android:onClick="@{(view)-> restaurantFragment.fabOnClick(view)}"
+            android:src="@{needRetry ? @drawable/ic_retry : @drawable/ic_my_location}"
+            app:backgroundTint="@color/fab_color" />
+
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:mapbox_renderTextureMode="true" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/restaurantRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/restaurant_progress_bar"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="@dimen/margin_medium"
+            android:padding="@dimen/padding_small"
+            tools:itemCount="1"
+            tools:listitem="@layout/restaurant_item" />
+
+        <View
+            android:id="@+id/view"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentTop="true"
+            android:layout_margin="@dimen/margin_small"
+            android:background="@drawable/custom_card"
+            android:paddingStart="@dimen/padding_large"
+            android:paddingEnd="@dimen/margin_large" />
+
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/search_edt"
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_alignParentTop="true"
+            android:layout_margin="@dimen/margin_small"
+            android:autofillHints="hello"
+            android:background="@android:color/transparent"
+            android:hint="@string/search_hint"
+            android:paddingStart="@dimen/padding_large"
+            android:paddingEnd="@dimen/margin_large"
+            android:singleLine="true" />
+
+        <androidx.core.widget.ContentLoadingProgressBar
+            android:id="@+id/restaurant_progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="@dimen/margin_standard"
+            android:backgroundTint="@color/colorPrimary"
+            android:indeterminate="true"
+            android:theme="@style/ContentLoadingProgress" />
+    </RelativeLayout>
+
+</layout>

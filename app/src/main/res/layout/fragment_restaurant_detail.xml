@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="host"
+            type="com.einhesari.zomatosample.view.RestaurantDetailFragment" />
+
+        <variable
+            name="restaurant"
+            type="com.einhesari.zomatosample.model.Restaurant" />
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blank_background_color"
+        tools:context=".view.RestaurantDetailFragment">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <View
+                android:id="@+id/characterDetailAvatarCenterIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                app:layout_constraintBottom_toBottomOf="@id/restaurant_photo_img"
+                app:layout_constraintEnd_toEndOf="@id/restaurant_photo_img"
+                app:layout_constraintStart_toStartOf="@id/restaurant_photo_img"
+                app:layout_constraintTop_toTopOf="@id/restaurant_photo_img" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:background="@drawable/custom_card"
+                app:layout_constraintBottom_toBottomOf="@id/phone_number_tv"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/characterDetailAvatarCenterIndicator" />
+
+            <View
+                android:layout_width="@dimen/restaurant_detail_image_ring"
+                android:layout_height="@dimen/restaurant_detail_image_ring"
+                android:background="@{restaurant.featuredImage.empty ? null : @drawable/restaurant_image_ring}"
+                app:layout_constraintBottom_toBottomOf="@id/restaurant_photo_img"
+                app:layout_constraintEnd_toEndOf="@id/restaurant_photo_img"
+                app:layout_constraintStart_toStartOf="@id/restaurant_photo_img"
+                app:layout_constraintTop_toTopOf="@id/restaurant_photo_img" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/restaurant_photo_img"
+                android:layout_width="@dimen/restaurant_detail_image"
+                android:layout_height="@dimen/restaurant_detail_image"
+                android:layout_marginTop="@dimen/margin_large"
+                android:layout_marginBottom="@dimen/margin_large"
+                android:imageUrl="@{restaurant.featuredImage}"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/restaurant_name_tv"
+                style="@style/TextAppearance.MaterialComponents.Headline5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_large"
+                android:layout_marginTop="@dimen/margin_large"
+                android:layout_marginEnd="@dimen/margin_large"
+                android:ellipsize="marquee"
+                android:gravity="center"
+                android:singleLine="true"
+                android:text="@{restaurant.name}"
+                app:layout_constraintTop_toBottomOf="@id/restaurant_photo_img"
+                tools:text="Restaurant name" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/restaurant_cuisine_tv"
+                style="@style/TextAppearance.MaterialComponents.Subtitle2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:ellipsize="marquee"
+                android:gravity="center"
+                android:singleLine="true"
+                android:text="@{restaurant.cuisines}"
+                app:layout_constraintTop_toBottomOf="@id/restaurant_name_tv"
+                tools:text="cuisine" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="@dimen/padding_xlarge"
+                android:layout_marginTop="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/margin_xlarge"
+                android:background="@color/colorPrimary"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/restaurant_cuisine_tv" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/average_cost_tv"
+                style="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_standard"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:drawablePadding="@dimen/padding_small"
+                android:ellipsize="marquee"
+                android:padding="@dimen/padding_standard"
+                android:singleLine="true"
+                android:text="@{`Average Cost For Two: ` + restaurant.averageCostForTwo + ` ` + restaurant.currency}"
+                app:drawableStartCompat="@drawable/price_black_24dp"
+                app:layout_constraintTop_toBottomOf="@id/restaurant_cuisine_tv"
+                tools:text="average cost" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/address_tv"
+                style="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/average_cost_tv"
+                android:layout_marginStart="@dimen/margin_standard"
+                android:drawablePadding="@dimen/padding_small"
+                android:ellipsize="marquee"
+                android:padding="@dimen/padding_standard"
+                android:singleLine="true"
+                android:text="@{restaurant.restaurantLocation.address}"
+                app:drawableStartCompat="@drawable/ic_location_black_24dp"
+                app:layout_constraintEnd_toStartOf="@id/navigate_btn"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/average_cost_tv"
+                tools:text="address" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/call_btn"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_large"
+                android:onClick="@{(view) -> host.onCallPressed(view)}"
+                android:padding="@dimen/padding_large"
+                android:text="@string/call_btn_text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/phone_number_tv" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/phone_number_tv"
+                style="@style/TextAppearance.MaterialComponents.Body1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_standard"
+                android:drawablePadding="@dimen/padding_small"
+                android:ellipsize="marquee"
+                android:padding="@dimen/padding_large"
+                android:singleLine="true"
+                android:text="@{restaurant.phoneNumbers}"
+                app:drawableStartCompat="@drawable/ic_phone_black_24dp"
+                app:layout_constraintEnd_toStartOf="@id/call_btn"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/address_tv"
+                tools:text="phone number" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/navigate_btn"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/margin_large"
+                android:onClick="@{(view) -> host.onNavigatePressed(view)}"
+                android:padding="@dimen/padding_standard"
+                android:text="@string/direction_btn_text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/address_tv" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+
+</layout>
