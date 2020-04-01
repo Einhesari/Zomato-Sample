@@ -2,7 +2,6 @@ package com.einhesari.zomatosample.di.scope
 
 import androidx.lifecycle.ViewModel
 import dagger.MapKey
-import java.lang.annotation.ElementType
 import kotlin.reflect.KClass
 
 

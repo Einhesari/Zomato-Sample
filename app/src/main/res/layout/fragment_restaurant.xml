@@ -25,13 +25,14 @@
             android:layout_alignParentEnd="true"
             android:layout_margin="@dimen/margin_standard"
             android:onClick="@{(view)-> restaurantFragment.fabOnClick(view)}"
-            android:src="@{needRetry ? @drawable/ic_retry : @drawable/ic_my_location}" />
+            android:src="@{needRetry ? @drawable/ic_retry : @drawable/ic_my_location}"
+            app:backgroundTint="@color/fab_color" />
 
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/map_view"
-            app:mapbox_renderTextureMode="true"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            app:mapbox_renderTextureMode="true" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/restaurantRecyclerView"
@@ -51,8 +52,8 @@
             android:layout_alignParentTop="true"
             android:layout_margin="@dimen/margin_small"
             android:background="@drawable/custom_card"
-            android:paddingEnd="@dimen/margin_large"
-            android:paddingStart="@dimen/padding_large" />
+            android:paddingStart="@dimen/padding_large"
+            android:paddingEnd="@dimen/margin_large" />
 
 
         <com.google.android.material.textfield.TextInputEditText
@@ -77,7 +78,9 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="@dimen/margin_standard"
-            android:indeterminate="true" />
+            android:backgroundTint="@color/colorPrimary"
+            android:indeterminate="true"
+            android:theme="@style/ContentLoadingProgress" />
     </RelativeLayout>
 
 </layout>

@@ -1,7 +1,6 @@
 package com.einhesari.zomatosample.di.module
 
 import android.content.Context
-import android.content.res.Resources
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.network.ApiService
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory

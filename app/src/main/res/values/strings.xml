@@ -8,7 +8,6 @@
     <string name="location_settings_change_unavailable">error occurred , please try again later</string>
     <string name="find_restaurants_failed">Failed to find your nearest restaurants : </string>
     <string name="permission_denied">In order to proceed we need your location</string>
-    <string name="no_restaurant_found">No restaurant found!</string>
     <string name="search_hint">Restaurant name, cuisine,…</string>
     <string name="sth_went_wrong">Something went wrong, please try again later</string>
     <string name="no_near_restaurant">There is no restauratns nearby, you can change your location and try again later </string>

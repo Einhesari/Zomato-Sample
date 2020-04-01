@@ -3,7 +3,7 @@ package com.einhesari.zomatosample.viewmodel
 import android.location.Location
 import com.einhesari.zomatosample.model.RestaurantSearchResponse
 import com.einhesari.zomatosample.network.ApiService
-import com.einhesari.zomatosample.utils.Const.SEARCH_RADIUS
+import com.einhesari.zomatosample.utils.Const.RESTAURATNS_RADIUS
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -17,7 +17,7 @@ class RemoteApiRepository @Inject constructor(private val apiService: ApiService
         return apiService.findRestaurant(
             location.latitude.toString(),
             location.longitude.toString(),
-            SEARCH_RADIUS.toString()
+            RESTAURATNS_RADIUS.toString()
         )
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +18,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
@@ -406,7 +404,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                 .withIconSize(2.0f)
                 .withTextField(text)
                 .withTextJustify(TEXT_JUSTIFY_AUTO)
-                .withTextOffset(arrayOf(0f, -1.8f))
+                .withTextOffset(arrayOf(0f, -3f))
         )
     }
 

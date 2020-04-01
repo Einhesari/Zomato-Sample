@@ -1,6 +1,5 @@
 package com.einhesari.zomatosample.di.module
 
-import android.app.Application
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest

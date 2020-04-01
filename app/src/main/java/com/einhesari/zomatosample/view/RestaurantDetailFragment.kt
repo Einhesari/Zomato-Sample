@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.einhesari.zomatosample.R
 import com.einhesari.zomatosample.databinding.FragmentRestaurantDetailBinding
 import com.einhesari.zomatosample.model.Restaurant

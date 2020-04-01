@@ -3,7 +3,7 @@ package com.einhesari.zomatosample.viewmodel
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import com.einhesari.zomatosample.model.Restaurant
-import com.einhesari.zomatosample.utils.Const.SEARCH_RADIUS
+import com.einhesari.zomatosample.utils.Const.RESTAURATNS_RADIUS
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -103,7 +103,7 @@ class RestaurantsViewModel @Inject constructor(
                 latitude = it.restaurantLocation.latitude.toDouble()
                 longitude = it.restaurantLocation.longitude.toDouble()
             }
-            if (location.distanceTo(restaurantLocation) < SEARCH_RADIUS) {
+            if (location.distanceTo(restaurantLocation) < RESTAURATNS_RADIUS) {
                 nearRestaurants.add(it)
             }
         }
