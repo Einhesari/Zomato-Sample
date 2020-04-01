@@ -19,11 +19,14 @@ class RestaurantsViewModel @Inject constructor(
     private val compositeDisposable = CompositeDisposable()
     private var allRestaurant = ArrayList<Restaurant>()
     private var inRangeRestaurant = ArrayList<Restaurant>()
+    private var userLocation: Location? = null
 
     fun getState() = state.hide()
     fun setState(state: RestaurantFragmentState) {
         this.state.accept(state)
     }
+
+    fun getLatestUserLocation() = userLocation
 
     fun initUserLocation() {
         state.accept(RestaurantFragmentState.Loading)
@@ -31,6 +34,7 @@ class RestaurantsViewModel @Inject constructor(
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
+                userLocation = it
                 state.accept(RestaurantFragmentState.GotUserLocationSuccessfully(it))
             }, {
                 state.accept(RestaurantFragmentState.Error(it))
@@ -90,11 +94,7 @@ class RestaurantsViewModel @Inject constructor(
                 result.add(it)
             }
         }
-        if (result.size > 0) {
-            state.accept(RestaurantFragmentState.SearchedRestaurants(result))
-        } else {
-            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
-        }
+        state.accept(RestaurantFragmentState.SearchedRestaurants(result))
     }
 
     private fun inRangeRestaurants(

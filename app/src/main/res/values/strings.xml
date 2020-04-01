@@ -11,6 +11,7 @@
     <string name="search_hint">Restaurant name, cuisine,…</string>
     <string name="sth_went_wrong">Something went wrong, please try again later</string>
     <string name="no_near_restaurant">There is no restauratns nearby, you can change your location and try again later </string>
+    <string name="no_restaurant_found_in_search">No restaurant found</string>
 
     <string name="selected_restauratn_bundle_key">selected_restaurant</string>
 

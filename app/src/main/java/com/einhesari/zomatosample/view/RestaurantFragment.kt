@@ -82,7 +82,6 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     lateinit var factory: ViewModelProviderFactory
     private lateinit var viewmodel: RestaurantsViewModel
 
-    private val stateBundleLastLocationKey = "LOCATION_KEY"
     private val stateBundlePositionKey = "POSITION_KEY"
 
     private var lastVisibleRestaurant: Int = 0
@@ -113,19 +112,18 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
 
         binding.restaurantFragment = this
 
-        savedInstanceState?.let {
-            lastLocation = it.getParcelable(stateBundleLastLocationKey)
-            lastVisibleRestaurant = it.getInt(stateBundlePositionKey)
-        }
 
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        initViewIntraction()
+        initViewIntraction(savedInstanceState)
     }
 
-    private fun initViewIntraction() {
+    private fun initViewIntraction(savedInstanceState: Bundle?) {
+        savedInstanceState?.let {
+            lastVisibleRestaurant = it.getInt(stateBundlePositionKey)
+        }
         initRecyclerView()
         initSearchBarTextWatcher()
         (activity as AppCompatActivity).supportActionBar?.hide()
@@ -135,6 +133,7 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     private fun initDataIntraction() {
+        lastLocation = viewmodel.getLatestUserLocation()
         lastLocation?.let {
             showUserMarkerOnMap()
             moveCameraLocation(it, defaultMapZoom)
@@ -361,6 +360,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             is RestaurantFragmentState.SearchedRestaurants -> {
                 searchedRestaurant = state.restaurants
                 removeAllMarkers()
+                adapter.submitList(searchedRestaurant)
+                if (searchedRestaurant.size <= 0) {
+                    Toast.makeText(
+                        context,
+                        R.string.no_restaurant_found_in_search,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
                 searchedRestaurant.forEach {
                     val latLng =
                         LatLng(
@@ -369,10 +377,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                         )
                     addMarkerOnMap(latLng, it.name)
                 }
-                adapter.submitList(searchedRestaurant)
 
                 //move camera to first restaurant location
-
                 val restaurantLocation = Location("First Restaurant Location")
                 restaurantLocation.apply {
                     latitude =
@@ -538,10 +544,11 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(stateBundleLastLocationKey, lastLocation)
         outState.putInt(stateBundlePositionKey, lastVisibleRestaurant)
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+        if (::mapView.isInitialized) {
+            mapView.onSaveInstanceState(outState)
+        }
     }
 
     override fun onDestroyView() {
