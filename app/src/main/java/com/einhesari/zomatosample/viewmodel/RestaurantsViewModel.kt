@@ -94,11 +94,7 @@ class RestaurantsViewModel @Inject constructor(
                 result.add(it)
             }
         }
-        if (result.size > 0) {
-            state.accept(RestaurantFragmentState.SearchedRestaurants(result))
-        } else {
-            state.accept(RestaurantFragmentState.FetchedRestaurantsSuccessfully(inRangeRestaurant))
-        }
+        state.accept(RestaurantFragmentState.SearchedRestaurants(result))
     }
 
     private fun inRangeRestaurants(

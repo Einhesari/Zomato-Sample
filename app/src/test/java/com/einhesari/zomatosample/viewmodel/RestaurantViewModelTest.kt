@@ -476,6 +476,8 @@ class RestaurantViewModelTest {
 
         val nameQueryFoundedRestaurants = arrayListOf<Restaurant>(allRestaurant[1])
         val cuisineQueryFoundedRestaurants = arrayListOf<Restaurant>(allRestaurant[0])
+        val blankQueryFoundedRestaurants = arrayListOf<Restaurant>()
+
         arrayListOf<Restaurant>(gson.fromJson(restaurantSearchResponseJson, Restaurant::class.java))
         `when`(
             remoteApiRepository.findRestaurant(
@@ -504,7 +506,11 @@ class RestaurantViewModelTest {
         viewModel.searchRestaurant(nothingFoundQuery)
         state = viewModel.getState().test()
         state.assertValue {
-            it.equals(RestaurantFragmentState.FetchedRestaurantsSuccessfully(allRestaurant))
+            it.equals(
+                RestaurantFragmentState.SearchedRestaurants(
+                    blankQueryFoundedRestaurants
+                )
+            )
         }
 
         viewModel.searchRestaurant(blankQuery)

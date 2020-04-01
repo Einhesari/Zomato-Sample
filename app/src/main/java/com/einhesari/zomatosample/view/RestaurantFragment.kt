@@ -360,6 +360,15 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
             is RestaurantFragmentState.SearchedRestaurants -> {
                 searchedRestaurant = state.restaurants
                 removeAllMarkers()
+                adapter.submitList(searchedRestaurant)
+                if (searchedRestaurant.size <= 0) {
+                    Toast.makeText(
+                        context,
+                        R.string.no_restaurant_found_in_search,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
                 searchedRestaurant.forEach {
                     val latLng =
                         LatLng(
@@ -368,10 +377,8 @@ class RestaurantFragment : DaggerFragment(), OnMapReadyCallback {
                         )
                     addMarkerOnMap(latLng, it.name)
                 }
-                adapter.submitList(searchedRestaurant)
 
                 //move camera to first restaurant location
-
                 val restaurantLocation = Location("First Restaurant Location")
                 restaurantLocation.apply {
                     latitude =
